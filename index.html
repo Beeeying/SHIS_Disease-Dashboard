@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Somaliland Disease Surveillance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;padding:24px 28px}
+h1{font-size:18px;font-weight:500;margin-bottom:3px}
+.subtitle{font-size:12px;color:#999;margin-bottom:20px}
+.disease-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.d-btn{padding:6px 16px;font-size:13px;font-weight:400;border-radius:20px;border:1px solid #ddd;cursor:pointer;background:#fff;color:#555;transition:all .15s}
+.d-btn.active{color:#fff;border-color:transparent;font-weight:500}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.pill-label{font-size:11px;color:#aaa;flex-shrink:0}
+.pill{padding:4px 11px;font-size:12px;border-radius:16px;border:1px solid #ddd;cursor:pointer;background:#fff;color:#666;transition:all .15s}
+.pill.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#fff;border-radius:8px;padding:12px 14px;border:1px solid #eee}
+.stat-label{font-size:10px;color:#aaa;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.stat-value{font-size:22px;font-weight:500;line-height:1}
+.stat-sub{font-size:11px;color:#bbb;margin-top:3px}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-box{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px}
+.chart-box.full{grid-column:1/-1}
+.chart-title{font-size:11px;font-weight:500;color:#aaa;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#666}
+.legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.note{font-size:10px;color:#ccc;margin-top:14px}
+.zero-msg{display:flex;align-items:center;justify-content:center;height:80px;font-size:12px;color:#bbb}
+@media(max-width:580px){.chart-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1>Somaliland Disease Surveillance</h1>
+<p class="subtitle">Jan – Apr 2026 &nbsp;·&nbsp; 9 hospitals &nbsp;·&nbsp; ICD-10 based &nbsp;·&nbsp; TaiwanICDF / MoHD</p>
+
+<div class="disease-row" id="diseaseRow"></div>
+<div class="pills" id="filterRow"></div>
+<div class="stats" id="statsRow"></div>
+
+<div class="chart-grid">
+  <div class="chart-box full">
+    <div class="chart-title">Weekly case trend</div>
+    <div id="legendWeekly" class="legend"></div>
+    <div style="position:relative;height:190px"><canvas id="chartWeekly"></canvas></div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Cases by hospital</div>
+    <div style="position:relative;height:210px"><canvas id="chartHosp"></canvas></div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Age group distribution</div>
+    <div style="position:relative;height:210px"><canvas id="chartAge"></canvas></div>
+  </div>
+  <div class="chart-box full">
+    <div class="chart-title">Monthly totals</div>
+    <div style="position:relative;height:140px"><canvas id="chartMonthly"></canvas></div>
+  </div>
+</div>
+
+<p class="note">Source: All_Hospitals_Data_for_last_Three_month.xlsx</p>
+
+<script>
+const RAW = {"Measles":{"total":420,"weekly_by_hospital":[{"week":"2026-01-05","Hospital Name":"BU","count":1},{"week":"2026-01-05","Hospital Name":"MC","count":1},{"week":"2026-01-12","Hospital Name":"BU","count":4},{"week":"2026-01-12","Hospital Name":"GH","count":2},{"week":"2026-01-12","Hospital Name":"MC","count":1},{"week":"2026-01-19","Hospital Name":"BU","count":5},{"week":"2026-01-26","Hospital Name":"BU","count":14},{"week":"2026-02-02","Hospital Name":"BU","count":11},{"week":"2026-02-09","Hospital Name":"BU","count":14},{"week":"2026-02-09","Hospital Name":"MC","count":2},{"week":"2026-02-16","Hospital Name":"BU","count":12},{"week":"2026-02-16","Hospital Name":"GH","count":1},{"week":"2026-02-16","Hospital Name":"MC","count":1},{"week":"2026-02-23","Hospital Name":"BU","count":21},{"week":"2026-02-23","Hospital Name":"MC","count":2},{"week":"2026-03-02","Hospital Name":"BU","count":18},{"week":"2026-03-02","Hospital Name":"MC","count":2},{"week":"2026-03-09","Hospital Name":"BU","count":37},{"week":"2026-03-09","Hospital Name":"MC","count":3},{"week":"2026-03-16","Hospital Name":"BU","count":29},{"week":"2026-03-23","Hospital Name":"BU","count":56},{"week":"2026-03-30","Hospital Name":"BU","count":57},{"week":"2026-03-30","Hospital Name":"MC","count":1},{"week":"2026-04-06","Hospital Name":"BU","count":59},{"week":"2026-04-06","Hospital Name":"MC","count":2},{"week":"2026-04-13","Hospital Name":"BU","count":63},{"week":"2026-04-13","Hospital Name":"MC","count":1}],"monthly":[{"month":"2026-01","count":27},{"month":"2026-02","count":64},{"month":"2026-03","count":158},{"month":"2026-04","count":171}],"by_hospital":[{"Hospital Name":"BU","count":401},{"Hospital Name":"GH","count":3},{"Hospital Name":"MC","count":16}],"by_gender":[{"Gender":"F","count":189},{"Gender":"M","count":231}],"by_age":[{"age_group":"0-4","count":142},{"age_group":"5-14","count":71},{"age_group":"15-24","count":81},{"age_group":"25-44","count":41},{"age_group":"45-64","count":6},{"age_group":"65+","count":2}]},"Dengue":{"total":976,"weekly_by_hospital":[{"week":"2025-12-29","Hospital Name":"BU","count":5},{"week":"2025-12-29","Hospital Name":"EG","count":2},{"week":"2025-12-29","Hospital Name":"GH","count":1},{"week":"2025-12-29","Hospital Name":"HG","count":11},{"week":"2025-12-29","Hospital Name":"MC","count":1},{"week":"2026-01-05","Hospital Name":"BE","count":1},{"week":"2026-01-05","Hospital Name":"BU","count":11},{"week":"2026-01-05","Hospital Name":"EG","count":1},{"week":"2026-01-05","Hospital Name":"HG","count":9},{"week":"2026-01-12","Hospital Name":"BE","count":1},{"week":"2026-01-12","Hospital Name":"BU","count":17},{"week":"2026-01-12","Hospital Name":"EG","count":2},{"week":"2026-01-12","Hospital Name":"GH","count":1},{"week":"2026-01-12","Hospital Name":"HG","count":16},{"week":"2026-01-12","Hospital Name":"SL","count":1},{"week":"2026-01-19","Hospital Name":"BE","count":1},{"week":"2026-01-19","Hospital Name":"BO","count":4},{"week":"2026-01-19","Hospital Name":"BU","count":37},{"week":"2026-01-19","Hospital Name":"EG","count":1},{"week":"2026-01-19","Hospital Name":"GH","count":3},{"week":"2026-01-19","Hospital Name":"HG","count":24},{"week":"2026-01-26","Hospital Name":"BA","count":1},{"week":"2026-01-26","Hospital Name":"BE","count":2},{"week":"2026-01-26","Hospital Name":"BO","count":3},{"week":"2026-01-26","Hospital Name":"BU","count":55},{"week":"2026-01-26","Hospital Name":"EG","count":1},{"week":"2026-01-26","Hospital Name":"GH","count":2},{"week":"2026-01-26","Hospital Name":"HG","count":33},{"week":"2026-01-26","Hospital Name":"MC","count":6},{"week":"2026-02-02","Hospital Name":"BA","count":3},{"week":"2026-02-02","Hospital Name":"BE","count":2},{"week":"2026-02-02","Hospital Name":"BO","count":4},{"week":"2026-02-02","Hospital Name":"BU","count":89},{"week":"2026-02-02","Hospital Name":"GH","count":13},{"week":"2026-02-02","Hospital Name":"HG","count":34},{"week":"2026-02-02","Hospital Name":"MC","count":1},{"week":"2026-02-09","Hospital Name":"BA","count":1},{"week":"2026-02-09","Hospital Name":"BE","count":2},{"week":"2026-02-09","Hospital Name":"BO","count":1},{"week":"2026-02-09","Hospital Name":"BU","count":46},{"week":"2026-02-09","Hospital Name":"EG","count":3},{"week":"2026-02-09","Hospital Name":"GH","count":13},{"week":"2026-02-09","Hospital Name":"HG","count":33},{"week":"2026-02-09","Hospital Name":"MC","count":3},{"week":"2026-02-16","Hospital Name":"BA","count":4},{"week":"2026-02-16","Hospital Name":"BE","count":2},{"week":"2026-02-16","Hospital Name":"BO","count":4},{"week":"2026-02-16","Hospital Name":"BU","count":55},{"week":"2026-02-16","Hospital Name":"EG","count":2},{"week":"2026-02-16","Hospital Name":"GH","count":9},{"week":"2026-02-16","Hospital Name":"HG","count":71},{"week":"2026-02-16","Hospital Name":"MC","count":2},{"week":"2026-02-23","Hospital Name":"BO","count":1},{"week":"2026-02-23","Hospital Name":"BU","count":27},{"week":"2026-02-23","Hospital Name":"EG","count":1},{"week":"2026-02-23","Hospital Name":"GH","count":11},{"week":"2026-02-23","Hospital Name":"HG","count":43},{"week":"2026-03-02","Hospital Name":"BE","count":3},{"week":"2026-03-02","Hospital Name":"BO","count":2},{"week":"2026-03-02","Hospital Name":"BU","count":11},{"week":"2026-03-02","Hospital Name":"EG","count":3},{"week":"2026-03-02","Hospital Name":"GH","count":2},{"week":"2026-03-02","Hospital Name":"HG","count":27},{"week":"2026-03-02","Hospital Name":"MC","count":3},{"week":"2026-03-09","Hospital Name":"BA","count":1},{"week":"2026-03-09","Hospital Name":"BE","count":1},{"week":"2026-03-09","Hospital Name":"BO","count":2},{"week":"2026-03-09","Hospital Name":"BU","count":13},{"week":"2026-03-09","Hospital Name":"EG","count":12},{"week":"2026-03-09","Hospital Name":"GH","count":1},{"week":"2026-03-09","Hospital Name":"HG","count":10},{"week":"2026-03-09","Hospital Name":"MC","count":2},{"week":"2026-03-16","Hospital Name":"BO","count":2},{"week":"2026-03-16","Hospital Name":"BU","count":9},{"week":"2026-03-16","Hospital Name":"EG","count":11},{"week":"2026-03-16","Hospital Name":"GH","count":2},{"week":"2026-03-16","Hospital Name":"HG","count":3},{"week":"2026-03-16","Hospital Name":"MC","count":1},{"week":"2026-03-23","Hospital Name":"BO","count":1},{"week":"2026-03-23","Hospital Name":"BU","count":17},{"week":"2026-03-23","Hospital Name":"EG","count":7},{"week":"2026-03-23","Hospital Name":"HG","count":6},{"week":"2026-03-23","Hospital Name":"MC","count":2},{"week":"2026-03-30","Hospital Name":"BO","count":1},{"week":"2026-03-30","Hospital Name":"BU","count":18},{"week":"2026-03-30","Hospital Name":"EG","count":4},{"week":"2026-03-30","Hospital Name":"GH","count":1},{"week":"2026-03-30","Hospital Name":"HG","count":9},{"week":"2026-03-30","Hospital Name":"SL","count":4},{"week":"2026-04-06","Hospital Name":"BU","count":11},{"week":"2026-04-06","Hospital Name":"EG","count":11},{"week":"2026-04-06","Hospital Name":"GH","count":1},{"week":"2026-04-06","Hospital Name":"HG","count":8},{"week":"2026-04-13","Hospital Name":"BO","count":2},{"week":"2026-04-13","Hospital Name":"BU","count":7},{"week":"2026-04-13","Hospital Name":"EG","count":9},{"week":"2026-04-13","Hospital Name":"GH","count":1},{"week":"2026-04-13","Hospital Name":"HG","count":2}],"monthly":[{"month":"2026-01","count":231},{"month":"2026-02","count":491},{"month":"2026-03","count":178},{"month":"2026-04","count":76}],"by_hospital":[{"Hospital Name":"BA","count":10},{"Hospital Name":"BE","count":15},{"Hospital Name":"BO","count":27},{"Hospital Name":"BU","count":428},{"Hospital Name":"EG","count":70},{"Hospital Name":"GH","count":61},{"Hospital Name":"HG","count":339},{"Hospital Name":"MC","count":21},{"Hospital Name":"SL","count":5}],"by_gender":[{"Gender":"F","count":511},{"Gender":"M","count":465}],"by_age":[{"age_group":"0-4","count":109},{"age_group":"5-14","count":101},{"age_group":"15-24","count":240},{"age_group":"25-44","count":245},{"age_group":"45-64","count":147},{"age_group":"65+","count":91}]},"Malaria":{"total":305,"weekly_by_hospital":[{"week":"2025-12-29","Hospital Name":"EG","count":2},{"week":"2026-01-05","Hospital Name":"BE","count":4},{"week":"2026-01-05","Hospital Name":"BO","count":2},{"week":"2026-01-05","Hospital Name":"BU","count":2},{"week":"2026-01-05","Hospital Name":"GH","count":1},{"week":"2026-01-05","Hospital Name":"HG","count":4},{"week":"2026-01-12","Hospital Name":"BE","count":7},{"week":"2026-01-12","Hospital Name":"BO","count":7},{"week":"2026-01-12","Hospital Name":"EG","count":1},{"week":"2026-01-12","Hospital Name":"GH","count":2},{"week":"2026-01-12","Hospital Name":"HG","count":3},{"week":"2026-01-19","Hospital Name":"BO","count":14},{"week":"2026-01-19","Hospital Name":"BU","count":1},{"week":"2026-01-19","Hospital Name":"EG","count":1},{"week":"2026-01-19","Hospital Name":"GH","count":2},{"week":"2026-01-19","Hospital Name":"HG","count":2},{"week":"2026-01-26","Hospital Name":"BE","count":11},{"week":"2026-01-26","Hospital Name":"BO","count":35},{"week":"2026-01-26","Hospital Name":"BU","count":1},{"week":"2026-01-26","Hospital Name":"GH","count":2},{"week":"2026-01-26","Hospital Name":"HG","count":5},{"week":"2026-02-02","Hospital Name":"BE","count":5},{"week":"2026-02-02","Hospital Name":"BO","count":24},{"week":"2026-02-02","Hospital Name":"BU","count":1},{"week":"2026-02-02","Hospital Name":"GH","count":5},{"week":"2026-02-02","Hospital Name":"HG","count":2},{"week":"2026-02-09","Hospital Name":"BE","count":2},{"week":"2026-02-09","Hospital Name":"BO","count":23},{"week":"2026-02-09","Hospital Name":"GH","count":3},{"week":"2026-02-09","Hospital Name":"HG","count":2},{"week":"2026-02-16","Hospital Name":"BE","count":6},{"week":"2026-02-16","Hospital Name":"BO","count":13},{"week":"2026-02-16","Hospital Name":"EG","count":1},{"week":"2026-02-16","Hospital Name":"HG","count":1},{"week":"2026-02-23","Hospital Name":"BE","count":3},{"week":"2026-02-23","Hospital Name":"BO","count":4},{"week":"2026-02-23","Hospital Name":"EG","count":2},{"week":"2026-02-23","Hospital Name":"GH","count":4},{"week":"2026-02-23","Hospital Name":"HG","count":1},{"week":"2026-03-02","Hospital Name":"BE","count":3},{"week":"2026-03-02","Hospital Name":"BO","count":8},{"week":"2026-03-02","Hospital Name":"GH","count":1},{"week":"2026-03-02","Hospital Name":"HG","count":4},{"week":"2026-03-09","Hospital Name":"BE","count":2},{"week":"2026-03-09","Hospital Name":"EG","count":2},{"week":"2026-03-09","Hospital Name":"HG","count":1},{"week":"2026-03-16","Hospital Name":"BE","count":2},{"week":"2026-03-16","Hospital Name":"BO","count":3},{"week":"2026-03-16","Hospital Name":"BU","count":1},{"week":"2026-03-16","Hospital Name":"EG","count":1},{"week":"2026-03-16","Hospital Name":"HG","count":1},{"week":"2026-03-23","Hospital Name":"BE","count":2},{"week":"2026-03-23","Hospital Name":"BO","count":6},{"week":"2026-03-23","Hospital Name":"BU","count":1},{"week":"2026-03-23","Hospital Name":"EG","count":3},{"week":"2026-03-23","Hospital Name":"GH","count":1},{"week":"2026-03-23","Hospital Name":"HG","count":1},{"week":"2026-03-30","Hospital Name":"BE","count":3},{"week":"2026-03-30","Hospital Name":"BO","count":5},{"week":"2026-03-30","Hospital Name":"BU","count":1},{"week":"2026-03-30","Hospital Name":"EG","count":2},{"week":"2026-03-30","Hospital Name":"GH","count":2},{"week":"2026-03-30","Hospital Name":"HG","count":1},{"week":"2026-04-06","Hospital Name":"BE","count":7},{"week":"2026-04-06","Hospital Name":"BO","count":10},{"week":"2026-04-06","Hospital Name":"BU","count":1},{"week":"2026-04-06","Hospital Name":"EG","count":1},{"week":"2026-04-06","Hospital Name":"GH","count":1},{"week":"2026-04-13","Hospital Name":"BE","count":7},{"week":"2026-04-13","Hospital Name":"BO","count":9},{"week":"2026-04-13","Hospital Name":"HG","count":1}],"monthly":[{"month":"2026-01","count":101},{"month":"2026-02","count":109},{"month":"2026-03","count":50},{"month":"2026-04","count":45}],"by_hospital":[{"Hospital Name":"BE","count":64},{"Hospital Name":"BO","count":163},{"Hospital Name":"BU","count":9},{"Hospital Name":"EG","count":16},{"Hospital Name":"GH","count":24},{"Hospital Name":"HG","count":29}],"by_gender":[{"Gender":"F","count":107},{"Gender":"M","count":198}],"by_age":[{"age_group":"0-4","count":9},{"age_group":"5-14","count":46},{"age_group":"15-24","count":85},{"age_group":"25-44","count":98},{"age_group":"45-64","count":49},{"age_group":"65+","count":14}]},"Cholera":{"total":49,"weekly_by_hospital":[{"week":"2025-12-29","Hospital Name":"HG","count":2},{"week":"2026-01-05","Hospital Name":"BU","count":1},{"week":"2026-01-12","Hospital Name":"HG","count":1},{"week":"2026-01-19","Hospital Name":"HG","count":4},{"week":"2026-01-26","Hospital Name":"BU","count":1},{"week":"2026-01-26","Hospital Name":"HG","count":3},{"week":"2026-02-02","Hospital Name":"HG","count":3},{"week":"2026-02-09","Hospital Name":"HG","count":5},{"week":"2026-02-16","Hospital Name":"BU","count":1},{"week":"2026-02-23","Hospital Name":"GH","count":2},{"week":"2026-02-23","Hospital Name":"HG","count":2},{"week":"2026-03-02","Hospital Name":"HG","count":3},{"week":"2026-03-09","Hospital Name":"GH","count":1},{"week":"2026-03-09","Hospital Name":"HG","count":2},{"week":"2026-03-23","Hospital Name":"HG","count":2},{"week":"2026-03-30","Hospital Name":"GH","count":4},{"week":"2026-03-30","Hospital Name":"HG","count":3},{"week":"2026-04-06","Hospital Name":"BE","count":1},{"week":"2026-04-06","Hospital Name":"EG","count":2},{"week":"2026-04-06","Hospital Name":"HG","count":1},{"week":"2026-04-13","Hospital Name":"BU","count":2},{"week":"2026-04-13","Hospital Name":"GH","count":1},{"week":"2026-04-13","Hospital Name":"HG","count":2}],"monthly":[{"month":"2026-01","count":12},{"month":"2026-02","count":13},{"month":"2026-03","count":11},{"month":"2026-04","count":13}],"by_hospital":[{"Hospital Name":"BE","count":1},{"Hospital Name":"BU","count":5},{"Hospital Name":"EG","count":2},{"Hospital Name":"GH","count":8},{"Hospital Name":"HG","count":33}],"by_gender":[{"Gender":"F","count":23},{"Gender":"M","count":26}],"by_age":[{"age_group":"5-14","count":2},{"age_group":"15-24","count":12},{"age_group":"25-44","count":14},{"age_group":"45-64","count":8},{"age_group":"65+","count":12}]},"AWD":{"total":103,"weekly_by_hospital":[{"week":"2025-12-29","Hospital Name":"HG","count":1},{"week":"2025-12-29","Hospital Name":"MC","count":2},{"week":"2026-01-05","Hospital Name":"HG","count":1},{"week":"2026-01-05","Hospital Name":"MC","count":1},{"week":"2026-01-12","Hospital Name":"BE","count":1},{"week":"2026-01-12","Hospital Name":"MC","count":6},{"week":"2026-01-19","Hospital Name":"EG","count":2},{"week":"2026-01-19","Hospital Name":"HG","count":3},{"week":"2026-01-19","Hospital Name":"MC","count":8},{"week":"2026-01-26","Hospital Name":"MC","count":19},{"week":"2026-02-02","Hospital Name":"HG","count":4},{"week":"2026-02-02","Hospital Name":"MC","count":4},{"week":"2026-02-09","Hospital Name":"EG","count":1},{"week":"2026-02-09","Hospital Name":"MC","count":3},{"week":"2026-02-16","Hospital Name":"HG","count":3},{"week":"2026-02-16","Hospital Name":"MC","count":7},{"week":"2026-02-23","Hospital Name":"HG","count":1},{"week":"2026-03-02","Hospital Name":"HG","count":1},{"week":"2026-03-02","Hospital Name":"MC","count":5},{"week":"2026-03-09","Hospital Name":"EG","count":2},{"week":"2026-03-09","Hospital Name":"MC","count":1},{"week":"2026-03-16","Hospital Name":"EG","count":1},{"week":"2026-03-16","Hospital Name":"HG","count":1},{"week":"2026-03-23","Hospital Name":"HG","count":1},{"week":"2026-03-23","Hospital Name":"MC","count":2},{"week":"2026-03-30","Hospital Name":"HG","count":2},{"week":"2026-03-30","Hospital Name":"MC","count":2},{"week":"2026-04-06","Hospital Name":"EG","count":2},{"week":"2026-04-06","Hospital Name":"HG","count":3},{"week":"2026-04-06","Hospital Name":"MC","count":8},{"week":"2026-04-13","Hospital Name":"EG","count":1},{"week":"2026-04-13","Hospital Name":"HG","count":1},{"week":"2026-04-13","Hospital Name":"MC","count":3}],"monthly":[{"month":"2026-01","count":39},{"month":"2026-02","count":27},{"month":"2026-03","count":16},{"month":"2026-04","count":21}],"by_hospital":[{"Hospital Name":"BE","count":1},{"Hospital Name":"EG","count":9},{"Hospital Name":"HG","count":22},{"Hospital Name":"MC","count":71}],"by_gender":[{"Gender":"F","count":48},{"Gender":"M","count":55}],"by_age":[{"age_group":"0-4","count":50},{"age_group":"5-14","count":16},{"age_group":"15-24","count":8},{"age_group":"25-44","count":2},{"age_group":"45-64","count":8},{"age_group":"65+","count":4}]},"TB":{"total":69,"weekly_by_hospital":[{"week":"2025-12-29","Hospital Name":"BU","count":3},{"week":"2025-12-29","Hospital Name":"HG","count":1},{"week":"2026-01-05","Hospital Name":"BE","count":1},{"week":"2026-01-05","Hospital Name":"BU","count":2},{"week":"2026-01-12","Hospital Name":"BU","count":2},{"week":"2026-01-19","Hospital Name":"HG","count":2},{"week":"2026-01-26","Hospital Name":"HG","count":4},{"week":"2026-02-02","Hospital Name":"BE","count":1},{"week":"2026-02-02","Hospital Name":"BO","count":1},{"week":"2026-02-02","Hospital Name":"HG","count":1},{"week":"2026-02-09","Hospital Name":"BA","count":1},{"week":"2026-02-09","Hospital Name":"BU","count":3},{"week":"2026-02-09","Hospital Name":"GH","count":1},{"week":"2026-02-09","Hospital Name":"HG","count":1},{"week":"2026-02-16","Hospital Name":"BE","count":2},{"week":"2026-02-16","Hospital Name":"BO","count":1},{"week":"2026-02-16","Hospital Name":"BU","count":2},{"week":"2026-02-16","Hospital Name":"HG","count":2},{"week":"2026-02-23","Hospital Name":"BU","count":1},{"week":"2026-02-23","Hospital Name":"HG","count":2},{"week":"2026-03-02","Hospital Name":"BE","count":3},{"week":"2026-03-02","Hospital Name":"BU","count":1},{"week":"2026-03-02","Hospital Name":"HG","count":1},{"week":"2026-03-09","Hospital Name":"BE","count":3},{"week":"2026-03-09","Hospital Name":"BU","count":2},{"week":"2026-03-09","Hospital Name":"EG","count":1},{"week":"2026-03-09","Hospital Name":"HG","count":2},{"week":"2026-03-16","Hospital Name":"BE","count":1},{"week":"2026-03-16","Hospital Name":"BU","count":3},{"week":"2026-03-23","Hospital Name":"BE","count":1},{"week":"2026-03-23","Hospital Name":"BU","count":1},{"week":"2026-03-30","Hospital Name":"BE","count":2},{"week":"2026-03-30","Hospital Name":"GH","count":1},{"week":"2026-03-30","Hospital Name":"HG","count":1},{"week":"2026-04-06","Hospital Name":"BE","count":3},{"week":"2026-04-06","Hospital Name":"BU","count":2},{"week":"2026-04-06","Hospital Name":"EG","count":1},{"week":"2026-04-06","Hospital Name":"HG","count":1},{"week":"2026-04-13","Hospital Name":"BE","count":1},{"week":"2026-04-13","Hospital Name":"BU","count":1},{"week":"2026-04-13","Hospital Name":"EG","count":1},{"week":"2026-04-13","Hospital Name":"HG","count":1},{"week":"2026-04-13","Hospital Name":"MC","count":1}],"monthly":[{"month":"2026-01","count":15},{"month":"2026-02","count":19},{"month":"2026-03","count":19},{"month":"2026-04","count":16}],"by_hospital":[{"Hospital Name":"BA","count":1},{"Hospital Name":"BE","count":18},{"Hospital Name":"BO","count":2},{"Hospital Name":"BU","count":23},{"Hospital Name":"EG","count":3},{"Hospital Name":"GH","count":2},{"Hospital Name":"HG","count":19},{"Hospital Name":"MC","count":1}],"by_gender":[{"Gender":"F","count":22},{"Gender":"M","count":47}],"by_age":[{"age_group":"0-4","count":1},{"age_group":"5-14","count":3},{"age_group":"15-24","count":10},{"age_group":"25-44","count":22},{"age_group":"45-64","count":23},{"age_group":"65+","count":9}]}};
+
+const DISEASE_COLORS = {
+  Measles:'#378ADD', Dengue:'#D85A30', Malaria:'#1D9E75',
+  Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD'
+};
+const HOSP_COLORS = {
+  BU:'#378ADD',HG:'#D85A30',EG:'#1D9E75',GH:'#D4537E',
+  MC:'#BA7517',BO:'#7F77DD',BE:'#639922',BA:'#888780',SL:'#533AB7'
+};
+
+let currentDisease = 'Measles', selectedHospital = null, charts = {};
+
+function buildDiseaseButtons() {
+  const row = document.getElementById('diseaseRow');
+  Object.keys(RAW).forEach(d => {
+    const b = document.createElement('button');
+    b.className = 'd-btn' + (d === currentDisease ? ' active' : '');
+    b.textContent = d;
+    if (d === currentDisease) b.style.background = DISEASE_COLORS[d];
+    b.onclick = () => setDisease(d);
+    row.appendChild(b);
+  });
+}
+
+function setDisease(d) {
+  currentDisease = d; selectedHospital = null;
+  document.querySelectorAll('.d-btn').forEach(b => {
+    const active = b.textContent === d;
+    b.classList.toggle('active', active);
+    b.style.background = active ? DISEASE_COLORS[d] : '';
+  });
+  buildFilters(); renderAll();
+}
+
+function getHospitals() {
+  const s = new Set();
+  RAW[currentDisease].weekly_by_hospital.forEach(r => s.add(r['Hospital Name']));
+  return [...s].sort();
+}
+
+function buildFilters() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML = '<span class="pill-label">Hospital:</span>';
+  const all = document.createElement('button');
+  all.className = 'pill active'; all.textContent = 'All';
+  all.onclick = () => { selectedHospital = null; updatePills(); renderAll(); };
+  row.appendChild(all);
+  getHospitals().forEach(h => {
+    const p = document.createElement('button');
+    p.className = 'pill'; p.textContent = h;
+    p.style.borderLeft = '3px solid ' + (HOSP_COLORS[h] || '#888');
+    p.onclick = () => { selectedHospital = (selectedHospital === h) ? null : h; updatePills(); renderAll(); };
+    row.appendChild(p);
+  });
+}
+
+function updatePills() {
+  document.querySelectorAll('#filterRow .pill').forEach((p, i) => {
+    if (i === 0) p.classList.toggle('active', !selectedHospital);
+    else p.classList.toggle('active', p.textContent === selectedHospital);
+  });
+}
+
+function renderStats() {
+  const d = RAW[currentDisease];
+  let total = d.total, peak = '', peakVal = 0;
+  if (selectedHospital) {
+    const rows = d.weekly_by_hospital.filter(r => r['Hospital Name'] === selectedHospital);
+    total = rows.reduce((s, r) => s + r.count, 0);
+    rows.forEach(r => { if (r.count > peakVal) { peakVal = r.count; peak = r.week; } });
+  } else {
+    const wm = {};
+    d.weekly_by_hospital.forEach(r => { wm[r.week] = (wm[r.week] || 0) + r.count; });
+    Object.entries(wm).forEach(([w, c]) => { if (c > peakVal) { peakVal = c; peak = w; } });
+  }
+  const g = d.by_gender, mRow = g.find(x => x.Gender === 'M');
+  const mRatio = mRow ? Math.round(mRow.count / g.reduce((s, x) => s + x.count, 0) * 100) : 0;
+  const topAge = [...d.by_age].sort((a, b) => b.count - a.count)[0];
+  const months = d.monthly;
+  const trend = months.length >= 2 ? (months[months.length-1].count > months[months.length-2].count ? 'Rising' : 'Falling') : 'N/A';
+  const tColor = trend === 'Rising' ? '#E24B4A' : '#1D9E75';
+  const accentColor = DISEASE_COLORS[currentDisease];
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-label">Total cases</div><div class="stat-value" style="color:${accentColor}">${total.toLocaleString()}</div><div class="stat-sub">${selectedHospital || 'All hospitals'}</div></div>
+    <div class="stat"><div class="stat-label">Peak week</div><div class="stat-value" style="font-size:15px">${peak || '—'}</div><div class="stat-sub">${peakVal} cases</div></div>
+    <div class="stat"><div class="stat-label">Male ratio</div><div class="stat-value">${mRatio}%</div><div class="stat-sub">of total cases</div></div>
+    <div class="stat"><div class="stat-label">Top age group</div><div class="stat-value" style="font-size:16px">${topAge ? topAge.age_group : '—'}</div><div class="stat-sub">${topAge ? topAge.count + ' cases' : ''}</div></div>
+    <div class="stat"><div class="stat-label">Monthly trend</div><div class="stat-value" style="font-size:18px;color:${tColor}">${trend}</div><div class="stat-sub">vs previous month</div></div>`;
+}
+
+function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderWeekly() {
+  dc('weekly');
+  let rows = RAW[currentDisease].weekly_by_hospital;
+  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+  const weeks = [...new Set(rows.map(r => r.week))].sort();
+  const hosps = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+  const datasets = hosps.map(h => {
+    const data = weeks.map(w => { const r = rows.find(x => x.week === w && x['Hospital Name'] === h); return r ? r.count : 0; });
+    const dashes = {HG:[5,3],EG:[2,2],BO:[4,2],BE:[6,2]};
+    return { label:h, data, borderColor:HOSP_COLORS[h]||'#888', backgroundColor:(HOSP_COLORS[h]||'#888')+'22',
+      fill: hosps.length===1, tension:0.3, pointRadius:2, borderWidth:2, borderDash:dashes[h]||[] };
+  });
+  document.getElementById('legendWeekly').innerHTML = hosps.map(h =>
+    `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+  charts['weekly'] = new Chart(document.getElementById('chartWeekly'), {
+    type:'line', data:{ labels:weeks.map(w=>w.slice(5)), datasets },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:12}}, y:{ticks:{font:{size:10}}} } }
+  });
+}
+
+function renderHospital() {
+  dc('hosp');
+  let rows = RAW[currentDisease].by_hospital;
+  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+  if (!rows.length) { document.getElementById('chartHosp').parentElement.innerHTML = '<div class="zero-msg">No data</div>'; return; }
+  const labels = rows.map(r => r['Hospital Name']);
+  charts['hosp'] = new Chart(document.getElementById('chartHosp'), {
+    type:'bar',
+    data:{ labels, datasets:[{ data:rows.map(r=>r.count), backgroundColor:labels.map(l=>HOSP_COLORS[l]||'#888'), borderWidth:0, borderRadius:3 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}}, scales:{ x:{ticks:{font:{size:10}}}, y:{ticks:{font:{size:11}}} } }
+  });
+}
+
+function renderAge() {
+  dc('age');
+  const ages = RAW[currentDisease].by_age;
+  const color = DISEASE_COLORS[currentDisease];
+  charts['age'] = new Chart(document.getElementById('chartAge'), {
+    type:'bar',
+    data:{ labels:ages.map(a=>a.age_group), datasets:[{ data:ages.map(a=>a.count), backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}}, scales:{ x:{ticks:{font:{size:11}}}, y:{ticks:{font:{size:10}}} } }
+  });
+}
+
+function renderMonthly() {
+  dc('monthly');
+  const months = RAW[currentDisease].monthly;
+  const color = DISEASE_COLORS[currentDisease];
+  charts['monthly'] = new Chart(document.getElementById('chartMonthly'), {
+    type:'bar',
+    data:{ labels:months.map(m=>m.month), datasets:[{ data:months.map(m=>m.count), backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
+      scales:{ x:{ticks:{font:{size:12}}}, y:{ticks:{font:{size:10}}} } }
+  });
+}
+
+function renderAll() { renderStats(); renderWeekly(); renderHospital(); renderAge(); renderMonthly(); }
+
+buildDiseaseButtons();
+buildFilters();
+renderAll();
+</script>
+</body>
+</html>

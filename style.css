@@ -1,26 +1,50 @@
 * { box-sizing: border-box; margin: 0; padding: 0 }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 24px 28px }
-h1 { font-size: 18px; font-weight: 500; margin-bottom: 3px }
-.subtitle { font-size: 12px; color: #999; margin-bottom: 20px }
-.disease-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px }
-.d-btn { padding: 6px 16px; font-size: 13px; font-weight: 400; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; background: #fff; color: #555; transition: all .15s }
-.d-btn.active { color: #fff; border-color: transparent; font-weight: 500 }
-.pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; align-items: center }
-.pill-label { font-size: 11px; color: #aaa; flex-shrink: 0 }
-.pill { padding: 4px 11px; font-size: 12px; border-radius: 16px; border: 1px solid #ddd; cursor: pointer; background: #fff; color: #666; transition: all .15s }
-.pill.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px }
-.stat { background: #FFFF; border-radius: 8px; padding: 12px 14px; border: 1px solid #eee }
-.stat-label { font-size: 10px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px }
-.stat-value { font-size: 22px; font-weight: 500; line-height: 1 }
-.stat-sub { font-size: 11px; color: #bbb; margin-top: 3px }
-.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
-.chart-box { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 14px }
+body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 24px 28px; transition: background .3s ease }
+.page-header { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(280px, 420px) min-content; gap: 18px; align-items: center; margin-bottom: 18px }
+.brand-row { display: flex; align-items: center; gap: 12px }
+.brand-icons { display: flex; align-items: center; gap: 10px }
+.logo { width: 42px; height: 42px; object-fit: contain }
+.brand-text h1 { font-size: 26px; letter-spacing: -.02em; margin-bottom: 4px }
+.subtitle { font-size: 12px; color: #6d6d6d }
+.banner-summary { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap }
+.banner-card { min-width: 120px; background: rgba(255,255,255,.9); border: 1px solid rgba(0,0,0,.08); border-radius: 16px; padding: 14px 16px; text-align: center }
+.banner-card .card-label { font-size: 10px; color: #7c7c7c; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 6px }
+.banner-card .card-value { font-size: 28px; font-weight: 800; line-height: 1 }
+.banner-card .card-sub { font-size: 11px; color: #3c3c3c; margin-top: 6px }
+.row-controls { display: flex; justify-content: flex-end; margin: 8px 0 14px; }
+.view-switch-card { display: flex; justify-content: center; align-items: center; padding: 6px; border: 1px solid rgba(0,0,0,.08); border-radius: 999px; background: rgba(255,255,255,.95); }
+.view-switch { display: flex; gap: 0; }
+.view-btn { padding: 8px 16px; border-radius: 0; border: none; background: transparent; color: #333; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .2s; min-width: 90px; }
+.view-btn:first-child { border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+.view-btn:last-child { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+.view-btn.active { background: #000; color: #fff; }
+.view-btn:not(.active) { background: rgba(255,255,255,.9); }
+.disease-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px }
+.d-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 22px; border: 1px solid #000; cursor: pointer; background: #fff; color: #111; transition: all .2s }
+.d-btn.active { color: #fff; background: #000; border-color: transparent }
+.trend-icon { font-size: 10px; line-height: 1; }
+.d-btn[data-trend="up"] .trend-icon { color: #e24b4a }
+.d-btn[data-trend="down"] .trend-icon { color: #1d9e75 }
+.d-btn[data-trend="flat"] .trend-icon { color: #666 }
+
+.pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center }
+.pill-label { font-size: 11px; color: #7c7c7c; flex-shrink: 0 }
+.pill { padding: 6px 12px; font-size: 12px; border-radius: 16px; border: 1px solid #ddd; cursor: pointer; background: #fff; color: #444; transition: all .2s }
+.pill.active { background: #000; color: #fff; border-color: transparent }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px }
+.stat { background: rgba(255,255,255,.9); border-radius: 16px; padding: 14px 16px; border: 1px solid rgba(0,0,0,.08); min-height: 92px }
+.stat-label { font-size: 10px; color: #8a8a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px }
+.stat-value { font-size: 24px; font-weight: 700; line-height: 1.1 }
+.stat-sub { font-size: 11px; color: #9f9f9f; margin-top: 6px }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px }
+.chart-box { background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.08); border-radius: 18px; padding: 18px }
 .chart-box.full { grid-column: 1/-1 }
-.chart-title { font-size: 11px; font-weight: 500; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px }
-.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px }
-.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #666 }
-.legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0 }
-.note { font-size: 10px; color: #ccc; margin-top: 14px }
-.zero-msg { display: flex; align-items: center; justify-content: center; height: 80px; font-size: 12px; color: #bbb }
-@media(max-width:580px) { .chart-grid { grid-template-columns: 1fr } }
+.chart-box.hidden { display: none }
+.chart-title { font-size: 11px; font-weight: 700; color: #5f5f5f; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .6px }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555 }
+.legend-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0 }
+.note { font-size: 10px; color: #aaa; margin-top: 18px }
+.zero-msg { display: flex; align-items: center; justify-content: center; height: 80px; font-size: 12px; color: #999 }
+@media(max-width:880px) { .chart-grid { grid-template-columns: 1fr } }
+@media(max-width:640px) { .page-header { flex-direction: column; align-items: stretch } }

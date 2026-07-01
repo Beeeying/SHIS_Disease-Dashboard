@@ -6,33 +6,51 @@
   <title>Somaliland Disease Surveillance</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.3.0/dist/chartjs-plugin-annotation.min.js"></script>
 </head>
 <body>
-
-  <h1>Somaliland Disease Surveillance</h1>
-  <p class="subtitle">Jan – Apr 2026 &nbsp;·&nbsp; 9 hospitals &nbsp;·&nbsp; ICD-10 based &nbsp;·&nbsp; TaiwanICDF / MoHD</p>
+  <div class="page-header">
+    <div class="brand-row">
+      <div class="brand-icons">
+        <img src="./images/Logo-ICDF.png" alt="ICDF logo" class="logo">
+        <img src="./images/Logo-MoHD.png" alt="MoHD logo" class="logo">
+      </div>
+      <div class="brand-text">
+        <h1>Somaliland Disease Surveillance</h1>
+        <p class="subtitle">Jan – Apr 2026 · 9 hospitals · ICD-10 based · TaiwanICDF / MoHD</p>
+      </div>
+    </div>
+    <div class="banner-summary" id="bannerSummary"></div>
+  </div>
 
   <div class="disease-row" id="diseaseRow"></div>
   <div class="pills" id="filterRow"></div>
-  <div class="stats" id="statsRow"></div>
+  <div class="row-controls">
+    <div class="view-switch-card top-switch">
+      <div class="view-switch" id="viewSwitch">
+        <button class="view-btn active" data-mode="weekly">Weekly</button>
+        <button class="view-btn" data-mode="monthly">Monthly</button>
+      </div>
+    </div>
+  </div>
 
   <div class="chart-grid">
-    <div class="chart-box full">
-      <div class="chart-title">Weekly case trend</div>
-      <div id="legendWeekly" class="legend"></div>
-      <div style="position:relative;height:190px"><canvas id="chartWeekly"></canvas></div>
+    <div class="chart-box full" id="weeklyChartBox">
+      <div class="chart-title">Total case</div>
+      <div style="position:relative;height:200px"><canvas id="chartWeekly"></canvas></div>
     </div>
-    <div class="chart-box">
-      <div class="chart-title">Cases by hospital</div>
-      <div style="position:relative;height:210px"><canvas id="chartHosp"></canvas></div>
+    <div class="chart-box full" id="hospitalTrendBox">
+      <div class="chart-title">Hospital case trend</div>
+      <div id="legendWeekly" class="legend"></div>
+      <div style="position:relative;height:220px"><canvas id="chartHosp"></canvas></div>
+    </div>
+    <div class="chart-box full hidden" id="monthlyChartBox">
+      <div class="chart-title">Monthly totals</div>
+      <div style="position:relative;height:140px"><canvas id="chartMonthly"></canvas></div>
     </div>
     <div class="chart-box">
       <div class="chart-title">Age group distribution</div>
       <div style="position:relative;height:210px"><canvas id="chartAge"></canvas></div>
-    </div>
-    <div class="chart-box full">
-      <div class="chart-title">Monthly totals</div>
-      <div style="position:relative;height:140px"><canvas id="chartMonthly"></canvas></div>
     </div>
   </div>
 

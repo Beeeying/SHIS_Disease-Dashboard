@@ -1,16 +1,108 @@
 * { box-sizing: border-box; margin: 0; padding: 0 }
 body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 24px 28px; transition: background .3s ease }
-.page-header { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(280px, 420px) min-content; gap: 18px; align-items: center; margin-bottom: 18px }
-.brand-row { display: flex; align-items: center; gap: 12px }
-.brand-icons { display: flex; align-items: center; gap: 10px }
-.logo { width: 42px; height: 42px; object-fit: contain }
-.brand-text h1 { font-size: 26px; letter-spacing: -.02em; margin-bottom: 4px }
-.subtitle { font-size: 12px; color: #6d6d6d }
-.banner-summary { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap }
-.banner-card { min-width: 120px; background: rgba(255,255,255,.9); border: 1px solid rgba(0,0,0,.08); border-radius: 16px; padding: 14px 16px; text-align: center }
-.banner-card .card-label { font-size: 10px; color: #7c7c7c; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 6px }
-.banner-card .card-value { font-size: 28px; font-weight: 800; line-height: 1 }
-.banner-card .card-sub { font-size: 11px; color: #3c3c3c; margin-top: 6px }
+.page-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:30px;
+    margin-bottom:28px;
+    padding: 20px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.header-left{
+    display:flex;
+    align-items:center;
+}
+
+.brand-icons{
+    display:flex;
+    gap: 18px;
+    align-items:center;
+}
+
+.logo{
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.header-center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap: 16px;
+}
+
+.brand-text{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+}
+
+.brand-text h1{
+    font-size: 32px;
+    letter-spacing: -0.03em;
+    margin: 0;
+}
+
+.disease-row{
+    display:flex;
+    gap: 10px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.header-right{
+    display:flex;
+    justify-content:flex-end;
+    min-width: 320px;
+}
+
+.banner-summary{
+    display:flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.banner-card{
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    min-width: 130px;
+    box-shadow: none;
+    text-align: center;
+}
+
+.card-label{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #6e6e6e;
+    margin-bottom: 6px;
+}
+
+.card-value{
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.card-sub{
+    font-size: 11px;
+    color: #7c7c7c;
+}
+
+.subtitle { font-size: 12px; color: #6d6d6d; max-width: 650px; }
 .row-controls { display: flex; justify-content: flex-end; margin: 8px 0 14px; }
 .view-switch-card { display: flex; justify-content: center; align-items: center; padding: 6px; border: 1px solid rgba(0,0,0,.08); border-radius: 999px; background: rgba(255,255,255,.95); }
 .view-switch { display: flex; gap: 0; }
@@ -19,18 +111,17 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
 .view-btn:last-child { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
 .view-btn.active { background: #000; color: #fff; }
 .view-btn:not(.active) { background: rgba(255,255,255,.9); }
-.disease-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px }
-.d-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 22px; border: 1px solid #000; cursor: pointer; background: #fff; color: #111; transition: all .2s }
-.d-btn.active { color: #fff; background: #000; border-color: transparent }
-.trend-icon { font-size: 10px; line-height: 1; }
+.d-btn { display: inline-flex; align-items: center; justify-content:center; gap: 8px; padding: 10px 18px; font-size: 12px; font-weight: 700; border-radius: 999px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; background: #fff; color: #1a1a1a; transition: all .2s; box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.d-btn.active { color: #fff; background: #111; border-color: transparent; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+.trend-icon { font-size: 10px; line-height: 1; display:inline-flex; align-items:center; }
 .d-btn[data-trend="up"] .trend-icon { color: #e24b4a }
 .d-btn[data-trend="down"] .trend-icon { color: #1d9e75 }
 .d-btn[data-trend="flat"] .trend-icon { color: #666 }
 
-.pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center }
-.pill-label { font-size: 11px; color: #7c7c7c; flex-shrink: 0 }
-.pill { padding: 6px 12px; font-size: 12px; border-radius: 16px; border: 1px solid #ddd; cursor: pointer; background: #fff; color: #444; transition: all .2s }
-.pill.active { background: #000; color: #fff; border-color: transparent }
+.pills { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 20px; align-items: center; }
+.pill-label { font-size: 11px; color: #7c7c7c; flex-shrink: 0; font-weight: 700; }
+.pill { padding: 8px 14px; font-size: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; background: #fff; color: #444; transition: all .2s; }
+.pill.active { background: #111; color: #fff; border-color: transparent; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px }
 .stat { background: rgba(255,255,255,.9); border-radius: 16px; padding: 14px 16px; border: 1px solid rgba(0,0,0,.08); min-height: 92px }
 .stat-label { font-size: 10px; color: #8a8a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px }

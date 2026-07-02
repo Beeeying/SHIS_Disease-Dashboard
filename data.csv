@@ -1,4 +1,13 @@
 Type,Disease,Key1,Key2,Count
+HospitalRegion,All,BA,Awdal,0
+HospitalRegion,All,BE,Woqooyi Galbeed,0
+HospitalRegion,All,BO,Woqooyi Galbeed,0
+HospitalRegion,All,BU,Awdal,0
+HospitalRegion,All,EG,Togdheer,0
+HospitalRegion,All,GH,Sool,0
+HospitalRegion,All,HG,Togdheer,0
+HospitalRegion,All,MC,Sanaag,0
+HospitalRegion,All,SL,Sanaag,0
 Total,Measles,,,420
 Weekly,Measles,2026-01-05,BU,1
 Weekly,Measles,2026-01-05,MC,1

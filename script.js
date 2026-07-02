@@ -16,21 +16,26 @@ let RAW = {}; // 原本寫死的資料，現在從 CSV 動態載入
 let GLOBAL_WEEKS = [];
 let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
+let REGION_BY_HOSPITAL = {};
+let GEOJSON_FEATURES = [];
 
 if (window.ChartAnnotation) {
   Chart.register(ChartAnnotation);
 }
 
-// 載入與解析 CSV
-fetch('data.csv')
-  .then(res => res.text())
-  .then(text => {
-    RAW = parseCSV(text);
+// 載入與解析 CSV 與 GeoJSON
+Promise.all([
+  fetch('data.csv').then(res => res.text()),
+  fetch('regions.geojson').then(res => res.json())
+])
+  .then(([csvText, geojson]) => {
+    RAW = parseCSV(csvText);
+    GEOJSON_FEATURES = geojson.features || [];
     buildDiseaseButtons();
     setupViewSwitch();
     setDisease(currentDisease);
   })
-  .catch(err => console.error("Error loading CSV:", err));
+  .catch(err => console.error("Error loading dashboard data:", err));
 
 function parseCSV(text) {
   const data = {};
@@ -42,6 +47,11 @@ function parseCSV(text) {
     if (!lines[i].trim()) continue;
     const [type, disease, key1, key2, countStr] = lines[i].split(',');
     const count = parseInt(countStr, 10);
+
+    if (type === 'HospitalRegion') {
+      REGION_BY_HOSPITAL[key1] = key2;
+      continue;
+    }
 
     if (!data[disease]) {
       data[disease] = { total: 0, weekly_by_hospital: [], monthly: [], by_hospital: [], by_gender: [], by_age: [] };
@@ -106,6 +116,23 @@ function getHospitals() {
   const s = new Set();
   RAW[currentDisease].weekly_by_hospital.forEach(r => s.add(r['Hospital Name']));
   return [...s].sort();
+}
+
+function getLatestWeek() {
+  return GLOBAL_WEEKS[GLOBAL_WEEKS.length - 1] || '';
+}
+
+function getRegionalCaseMap(week) {
+  const d = RAW[currentDisease];
+  const rows = d.weekly_by_hospital.filter(r => r.week === week);
+  const filteredRows = selectedHospital ? rows.filter(r => r['Hospital Name'] === selectedHospital) : rows;
+  const cases = {};
+  filteredRows.forEach(r => {
+    const region = REGION_BY_HOSPITAL[r['Hospital Name']];
+    if (!region) return;
+    cases[region] = (cases[region] || 0) + r.count;
+  });
+  return cases;
 }
 
 function buildFilters() {
@@ -233,12 +260,141 @@ function renderMonthly() {
   });
 }
 
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+  const value = parseInt(full, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function renderRegionalMap() {
+  const container = document.getElementById('regionMap');
+  const legend = document.getElementById('regionMapLegend');
+  if (!container || !legend) return;
+
+  if (!GEOJSON_FEATURES.length) {
+    container.innerHTML = '<div class="zero-msg">No regional data available</div>';
+    legend.innerHTML = '';
+    return;
+  }
+
+  const week = getLatestWeek();
+  const caseMap = getRegionalCaseMap(week);
+  const regions = GEOJSON_FEATURES
+    .map(feature => feature.properties?.NAM_1)
+    .filter(Boolean)
+    .filter((name, index, arr) => arr.indexOf(name) === index);
+  const maxCases = Math.max(...regions.map(region => caseMap[region] || 0), 1);
+  const color = DISEASE_COLORS[currentDisease] || '#378ADD';
+
+  legend.innerHTML = [
+    '<span class="legend-item"><span class="legend-swatch" style="background: #f7f7f7"></span>Low</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.45) + '"></span>Medium</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.85) + '"></span>High</span>'
+  ].join('');
+
+  const margin = 24;
+  const width = 760;
+  const height = 500;
+  const allCoords = [];
+  GEOJSON_FEATURES.forEach(feature => {
+    const geometry = feature.geometry;
+    const walk = (coords) => {
+      if (!coords || !coords.length) return;
+      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+        allCoords.push(coords);
+      } else {
+        coords.forEach(walk);
+      }
+    };
+    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
+  });
+
+  const lons = allCoords.flat().map(([lon]) => lon);
+  const lats = allCoords.flat().map(([, lat]) => lat);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  const projectPoint = ([lon, lat]) => ({
+    x: margin + ((lon - minLon) / (maxLon - minLon || 1)) * (width - margin * 2),
+    y: height - margin - ((lat - minLat) / (maxLat - minLat || 1)) * (height - margin * 2)
+  });
+
+  const toPath = (rings) => rings.map(ring => {
+    const points = ring.map(point => {
+      const projected = projectPoint(point);
+      return `${projected.x.toFixed(2)},${projected.y.toFixed(2)}`;
+    }).join(' ');
+    return `M ${points} Z`;
+  }).join(' ');
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+  const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  background.setAttribute('x', '0');
+  background.setAttribute('y', '0');
+  background.setAttribute('width', String(width));
+  background.setAttribute('height', String(height));
+  background.setAttribute('fill', 'transparent');
+  svg.appendChild(background);
+
+  GEOJSON_FEATURES.forEach(feature => {
+    const regionName = feature.properties?.NAM_1;
+    const geometry = feature.geometry;
+    const count = caseMap[regionName] || 0;
+    const alpha = 0.15 + (count / maxCases) * 0.7;
+    const fill = hexToRgba(color, alpha);
+
+    const createPath = (coords) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', toPath(coords));
+      path.setAttribute('fill', fill);
+      path.setAttribute('stroke', '#ffffff');
+      path.setAttribute('stroke-width', '1.2');
+      svg.appendChild(path);
+    };
+
+    if (geometry?.type === 'Polygon') createPath(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(createPath);
+
+    if (regionName) {
+      const centroid = geometry?.type === 'MultiPolygon' ? geometry.coordinates[0][0][0] : geometry?.coordinates?.[0]?.[0];
+      if (centroid) {
+        const point = projectPoint(centroid);
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', String(point.x));
+        text.setAttribute('y', String(point.y));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('class', 'map-region-label');
+        text.textContent = `${regionName} · ${count}`;
+        svg.appendChild(text);
+      }
+    }
+  });
+
+  container.innerHTML = '';
+  container.appendChild(svg);
+
+  const caption = document.createElement('div');
+  caption.className = 'card-sub';
+  caption.textContent = `Latest week: ${week || '—'} · ${currentDisease}`;
+  container.appendChild(caption);
+}
+
 function renderAll() {
   renderStats();
   renderWeekly();
   renderHospital();
   renderAge();
   renderMonthly();
+  renderRegionalMap();
 }
 
 function setupViewSwitch() {

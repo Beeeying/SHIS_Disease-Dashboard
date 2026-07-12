@@ -161,9 +161,8 @@ function getLatestWeek() {
 function getRegionalCaseMap(week) {
   const d = RAW[currentDisease];
   const rows = d.weekly_by_hospital.filter(r => r.week === week);
-  const filteredRows = selectedHospital ? rows.filter(r => r['Hospital Name'] === selectedHospital) : rows;
   const cases = {};
-  filteredRows.forEach(r => {
+  rows.forEach(r => {
     const region = REGION_BY_HOSPITAL[r['Hospital Name']];
     if (!region) return;
     cases[region] = (cases[region] || 0) + r.count;
@@ -176,13 +175,13 @@ function buildFilters() {
   row.innerHTML = '<span class="pill-label">Hospital:</span>';
   const all = document.createElement('button');
   all.className = 'pill active'; all.textContent = 'All';
-  all.onclick = () => { selectedHospital = null; updatePills(); renderAll(); };
+  all.onclick = () => { selectedHospital = null; updatePills(); renderHospital(); };
   row.appendChild(all);
   getHospitals().forEach(h => {
     const p = document.createElement('button');
     p.className = 'pill'; p.textContent = h;
     p.style.borderLeft = '3px solid ' + (HOSP_COLORS[h] || '#888');
-    p.onclick = () => { selectedHospital = (selectedHospital === h) ? null : h; updatePills(); renderAll(); };
+    p.onclick = () => { selectedHospital = (selectedHospital === h) ? null : h; updatePills(); renderHospital(); };
     row.appendChild(p);
   });
 }
@@ -197,15 +196,9 @@ function updatePills() {
 function renderStats() {
   const d = RAW[currentDisease];
   let total = d.total, peak = '', peakVal = 0;
-  if (selectedHospital) {
-    const rows = d.weekly_by_hospital.filter(r => r['Hospital Name'] === selectedHospital);
-    total = rows.reduce((s, r) => s + r.count, 0);
-    rows.forEach(r => { if (r.count > peakVal) { peakVal = r.count; peak = r.week; } });
-  } else {
-    const wm = {};
-    d.weekly_by_hospital.forEach(r => { wm[r.week] = (wm[r.week] || 0) + r.count; });
-    Object.entries(wm).forEach(([w, c]) => { if (c > peakVal) { peakVal = c; peak = w; } });
-  }
+  const wm = {};
+  d.weekly_by_hospital.forEach(r => { wm[r.week] = (wm[r.week] || 0) + r.count; });
+  Object.entries(wm).forEach(([w, c]) => { if (c > peakVal) { peakVal = c; peak = w; } });
   const g = d.by_gender, mRow = g.find(x => x.Gender === 'M');
   const mRatio = mRow ? Math.round(mRow.count / g.reduce((s, x) => s + x.count, 0) * 100) : 0;
   const topAge = [...d.by_age].sort((a, b) => b.count - a.count)[0];
@@ -226,8 +219,7 @@ function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
 function renderWeekly() {
   dc('weekly');
-  let rows = RAW[currentDisease].weekly_by_hospital;
-  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+  const rows = RAW[currentDisease].weekly_by_hospital;
   const weeks = GLOBAL_WEEKS;
   const totalsByWeek = {};
   rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
@@ -279,33 +271,79 @@ function renderWeekly() {
 
 function renderHospital() {
   dc('hosp');
-  let rows = RAW[currentDisease].weekly_by_hospital;
-  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
-  const weeks = GLOBAL_WEEKS;
-  const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
-  if (!rows.length) { document.getElementById('chartHosp').parentElement.innerHTML = '<div class="zero-msg">No data</div>'; return; }
-  const datasets = hospitals.map(h => {
-    const values = weeks.map(w => { const r = rows.find(x => x.week === w && x['Hospital Name'] === h); return r ? r.count : 0; });
-    return { label:h, data:values, borderColor:HOSP_COLORS[h]||'#888', backgroundColor:(HOSP_COLORS[h]||'#888')+'22', tension:0.3, fill:false, pointRadius:2, borderWidth:2 };
-  });
-  document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
-    `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
-  // compute totals per week to detect peak
-  const totalsByWeek = {};
-  rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
-  const totalData = weeks.map(w => totalsByWeek[w] || 0);
+  const isMonthly = activeView === 'monthly';
+  const color = DISEASE_COLORS[currentDisease] || '#378ADD';
+  const chartHost = document.getElementById('chartHosp')?.parentElement;
+  if (!chartHost) return;
+  const ensureCanvas = () => {
+    if (!document.getElementById('chartHosp')) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas>';
+    }
+  };
+  ensureCanvas();
 
-  // find peak index and overall max for y-range
-  let peakIndex = 0, peakVal = -Infinity;
-  for (let i = 0; i < totalData.length; i++) {
-    if ((totalData[i] || 0) > peakVal) { peakVal = totalData[i] || 0; peakIndex = i; }
+  let labels = [];
+  let datasets = [];
+  let totals = [];
+
+  if (isMonthly) {
+    const months = [...GLOBAL_MONTHS];
+    const monthCounts = RAW[currentDisease].monthly.reduce((map, item) => { map[item.month] = item.count; return map; }, {});
+    labels = months;
+    const data = months.map(m => monthCounts[m] || 0);
+    datasets = [{
+      label: 'Total cases',
+      data,
+      borderColor: color,
+      backgroundColor: hexToRgba(color, 0.18),
+      tension: 0.3,
+      fill: false,
+      pointRadius: 3,
+      borderWidth: 2
+    }];
+    totals = data;
+    document.getElementById('legendWeekly').innerHTML = `<span class="legend-item"><span class="legend-dot" style="background:${color}"></span>Total</span>`;
+  } else {
+    let rows = RAW[currentDisease].weekly_by_hospital;
+    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+    const weeks = GLOBAL_WEEKS;
+    const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+    if (!rows.length) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+      document.getElementById('legendWeekly').innerHTML = '';
+      return;
+    }
+    labels = weeks.map(w => w.slice(5));
+    datasets = hospitals.map(h => {
+      const values = weeks.map(w => { const r = rows.find(x => x.week === w && x['Hospital Name'] === h); return r ? r.count : 0; });
+      return {
+        label: h,
+        data: values,
+        borderColor: HOSP_COLORS[h] || '#888',
+        backgroundColor: hexToRgba(HOSP_COLORS[h] || '#888', 0.14),
+        tension: 0.3,
+        fill: false,
+        pointRadius: 2,
+        borderWidth: 2
+      };
+    });
+    document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+    totals = weeks.map((w, index) => datasets.reduce((sum, ds) => sum + (ds.data[index] || 0), 0));
   }
 
+  if (!labels.length || totals.every(v => v === 0)) {
+    chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+    return;
+  }
+
+  const peakIndex = totals.reduce((best, value, index) => value > totals[best] ? index : best, 0);
   const highlightColor = hexToRgba('#F5DCDA', 0.4);
+  const maxTotal = Math.max(...totals, 1);
 
   charts['hosp'] = new Chart(document.getElementById('chartHosp'), {
     type: 'line',
-    data: { labels: weeks.map(w => w.slice(5)), datasets },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -319,15 +357,14 @@ function renderHospital() {
               xMin: peakIndex - 0.5,
               xMax: peakIndex + 0.5,
               yMin: 0,
-              yMax: Math.max(...totalData, 1),
+              yMax: maxTotal,
               backgroundColor: highlightColor,
               borderWidth: 0,
               drawTime: 'beforeDatasetsDraw',
               label: {
-                content: ['Peak Week'],
+                content: [isMonthly ? 'Peak Month' : 'Peak Week'],
                 enabled: true,
                 position: 'center',
-                // nudge the label above the highlight block so it sits visually outside the box
                 yAdjust: -24,
                 backgroundColor: 'transparent',
                 color: '#4d3232',
@@ -338,7 +375,10 @@ function renderHospital() {
           }
         }
       },
-      scales: { x: { ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 }, offset: true }, y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } } }
+      scales: {
+        x: { ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 }, offset: true },
+        y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
+      }
     }
   });
 }
@@ -512,8 +552,12 @@ function setupViewSwitch() {
     btn.onclick = () => {
       activeView = btn.dataset.mode;
       buttons.forEach(b => b.classList.toggle('active', b === btn));
-      document.getElementById('weeklyChartBox').classList.toggle('hidden', activeView !== 'weekly');
-      document.getElementById('monthlyChartBox').classList.toggle('hidden', activeView !== 'monthly');
+      const weeklyOnlyIds = ['weeklyChartBox'];
+      const alwaysVisibleIds = ['hospitalTrendBox', 'ageChartBox', 'regionChartBox'];
+      weeklyOnlyIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', activeView !== 'weekly'));
+      alwaysVisibleIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', false));
+      document.getElementById('monthlyChartBox')?.classList.toggle('hidden', activeView !== 'monthly');
+      renderAll();
     };
   });
 }

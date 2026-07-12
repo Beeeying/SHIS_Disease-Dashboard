@@ -19,6 +19,42 @@ let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
 
+const weeklyPeakHighlightPlugin = {
+  id: 'weeklyPeakHighlight',
+  beforeDatasetsDraw(chart, args, pluginOptions) {
+    const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
+    const peakIndex = settings.peakIndex;
+    if (peakIndex === undefined || peakIndex === null) return;
+
+    const { ctx, chartArea, scales } = chart;
+    if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
+
+    const xScale = scales.x;
+    const step = Math.max(12, (xScale.right - xScale.left) / Math.max(1, chart.data.labels.length));
+    const left = Math.max(xScale.left, xScale.getPixelForValue(peakIndex) - step / 2);
+    const right = Math.min(xScale.right, xScale.getPixelForValue(peakIndex) + step / 2);
+    if (right <= left) return;
+
+    ctx.save();
+    ctx.fillStyle = '#F5DCDA';
+    ctx.globalAlpha = 0.95;
+    ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+    ctx.restore();
+
+    const label = settings.label || 'Peak Week';
+    if (label) {
+      ctx.save();
+      ctx.font = '12px monospace';
+      ctx.fillStyle = '#4d3232';
+      const textWidth = ctx.measureText(label).width;
+      const textX = left + (right - left) / 2 - textWidth / 2;
+      const textY = chartArea.top - 8;
+      ctx.fillText(label, textX, textY);
+      ctx.restore();
+    }
+  }
+};
+
 if (window.ChartAnnotation) {
   Chart.register(ChartAnnotation);
 }
@@ -177,10 +213,13 @@ function renderStats() {
   const trend = months.length >= 2 ? (months[months.length-1].count > months[months.length-2].count ? 'Rising' : 'Falling') : 'N/A';
   const tColor = trend === 'Rising' ? '#E24B4A' : '#1D9E75';
   const accentColor = DISEASE_COLORS[currentDisease];
+  const peakPeriod = peak ? peak.slice(5).replace('-', ' - ') : '—';
+  const topAgeGroup = topAge ? topAge.age_group : '—';
+  const topAgeCount = topAge ? topAge.count : 0;
   document.getElementById('bannerSummary').innerHTML = `
     <div class="banner-card"><div class="card-label">Total Cases</div><div class="card-value">${total.toLocaleString()}</div><div class="card-sub">All Hospitals</div></div>
-    <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peak ? peak.slice(5).replace('-', ' - ') : '—'}</div><div class="card-sub">${peakVal} cases</div></div>
-    <div class="banner-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAge ? topAge.age_group : '—'}</div><div class="card-sub">${topAge ? topAge.count + ' cases' : ''}</div></div>`;
+    <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod ? 'Week ' + peakPeriod : '—'}</div></div>
+    <div class="banner-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAgeGroup}<span class="age-suffix">Y</span></div><div class="card-sub">${topAgeCount ? topAgeCount.toLocaleString() + ' cases' : '—'}</div></div>`;
 }
 
 function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
@@ -193,21 +232,48 @@ function renderWeekly() {
   const totalsByWeek = {};
   rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
   const data = weeks.map(w => totalsByWeek[w] || 0);
-  const peakWeek = weeks.reduce((best, w, idx) => {
-    return data[idx] > (totalsByWeek[best] || 0) ? w : best;
-  }, weeks[0]);
-  const peakIndex = weeks.indexOf(peakWeek);
+  // guard for empty dataset
+  if (!weeks || !weeks.length) {
+    document.getElementById('chartWeekly').getContext && document.getElementById('chartWeekly').parentElement && (document.getElementById('chartWeekly').parentElement.innerHTML = '<div class="zero-msg">No data</div>');
+    return;
+  }
+
+  // find peak index dynamically (sum across hospitals or filtered selection)
+  let peakIndex = 0;
+  let peakVal = -Infinity;
+  for (let i = 0; i < data.length; i++) {
+    if ((data[i] || 0) > peakVal) { peakVal = data[i] || 0; peakIndex = i; }
+  }
 
   const accent = '#4a4a4a';
   document.getElementById('legendWeekly').innerHTML = '';
+
+  // use the Morandi red with requested opacity via helper
+  const highlightColor = hexToRgba('#F5DCDA', 0.4);
+
   charts['weekly'] = new Chart(document.getElementById('chartWeekly'), {
-    type:'bar', data:{ labels:weeks.map(w=>w.slice(5)), datasets:[{ label:'Total cases', data, backgroundColor:accent, borderRadius:14, borderSkipped:false }] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, annotation:{annotations:{peakArea:{type:'box', xMin:peakIndex - 0.5, xMax:peakIndex + 0.5, yMin:0, yMax:data[peakIndex] || 1,
-          backgroundColor:'rgba(245,220,218,0.4)', borderWidth:0, drawTime:'beforeDatasetsDraw',
-          label:{content:['Peak Week'], enabled:true, position:'center', yAdjust:-20, backgroundColor:'transparent', color:'#4d3232', font:{family:'monospace', size:11}}}}}},
-      scales:{ x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:12}}, y:{beginAtZero:true,ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} }
-    }
+    type: 'bar',
+    data: { labels: weeks.map(w => w.slice(5)), datasets: [{ label: 'Total cases', data, backgroundColor: accent, borderRadius: 14, borderSkipped: false }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        weeklyPeakHighlight: {
+          peakIndex,
+          label: 'Peak Week'
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 },
+          offset: true
+        },
+        y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
+      }
+    },
+    plugins: [weeklyPeakHighlightPlugin]
   });
 }
 
@@ -224,12 +290,55 @@ function renderHospital() {
   });
   document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
     `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+  // compute totals per week to detect peak
+  const totalsByWeek = {};
+  rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
+  const totalData = weeks.map(w => totalsByWeek[w] || 0);
+
+  // find peak index and overall max for y-range
+  let peakIndex = 0, peakVal = -Infinity;
+  for (let i = 0; i < totalData.length; i++) {
+    if ((totalData[i] || 0) > peakVal) { peakVal = totalData[i] || 0; peakIndex = i; }
+  }
+
+  const highlightColor = hexToRgba('#F5DCDA', 0.4);
+
   charts['hosp'] = new Chart(document.getElementById('chartHosp'), {
-    type:'line',
-    data:{ labels:weeks.map(w=>w.slice(5)), datasets },
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
-      plugins:{legend:{display:false}},
-      scales:{ x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:12}}, y:{beginAtZero:true,ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} }
+    type: 'line',
+    data: { labels: weeks.map(w => w.slice(5)), datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        annotation: {
+          annotations: {
+            peakArea: {
+              type: 'box',
+              xMin: peakIndex - 0.5,
+              xMax: peakIndex + 0.5,
+              yMin: 0,
+              yMax: Math.max(...totalData, 1),
+              backgroundColor: highlightColor,
+              borderWidth: 0,
+              drawTime: 'beforeDatasetsDraw',
+              label: {
+                content: ['Peak Week'],
+                enabled: true,
+                position: 'center',
+                // nudge the label above the highlight block so it sits visually outside the box
+                yAdjust: -24,
+                backgroundColor: 'transparent',
+                color: '#4d3232',
+                font: { family: 'monospace', size: 12 },
+                padding: 2
+              }
+            }
+          }
+        }
+      },
+      scales: { x: { ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 }, offset: true }, y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } } }
     }
   });
 }
@@ -242,7 +351,7 @@ function renderAge() {
     type:'bar',
     data:{ labels:ages.map(a=>a.age_group), datasets:[{ data:ages.map(a=>a.count), backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3 }] },
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}}, scales:{ x:{ticks:{font:{size:11}}}, y:{beginAtZero:true,ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}}} }
+      plugins:{legend:{display:false}}, scales:{ x:{ticks:{font:{size:11}}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}}} }
   });
 }
 
@@ -256,7 +365,7 @@ function renderMonthly() {
     data:{ labels:months.map(m=>m), datasets:[{ data:months.map(m=>monthCounts[m] || 0), backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:4 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
-      scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}}, y:{beginAtZero:true,ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } }
+      scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } }
   });
 }
 

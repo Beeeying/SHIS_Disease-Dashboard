@@ -102,6 +102,15 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     color: #7c7c7c;
 }
 
+.age-suffix{
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+    vertical-align: baseline;
+}
+
 .subtitle { font-size: 12px; color: #6d6d6d; max-width: 650px; }
 .row-controls { display: flex; justify-content: flex-end; margin: 8px 0 14px; }
 .view-switch-card { display: flex; justify-content: center; align-items: center; padding: 6px; border: 1px solid rgba(0,0,0,.08); border-radius: 999px; background: rgba(255,255,255,.95); }

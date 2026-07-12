@@ -18,6 +18,7 @@ let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
+let weeklyWindowStart = 0;
 
 const weeklyPeakHighlightPlugin = {
   id: 'weeklyPeakHighlight',
@@ -40,18 +41,61 @@ const weeklyPeakHighlightPlugin = {
     ctx.globalAlpha = 0.95;
     ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
     ctx.restore();
+  },
+  afterDatasetsDraw(chart, args, pluginOptions) {
+    const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
+    const peakIndex = settings.peakIndex;
+    if (peakIndex === undefined || peakIndex === null) return;
+
+    const { ctx, chartArea, scales } = chart;
+    if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
+
+    const xScale = scales.x;
+    const step = Math.max(12, (xScale.right - xScale.left) / Math.max(1, chart.data.labels.length));
+    const left = Math.max(xScale.left, xScale.getPixelForValue(peakIndex) - step / 2);
+    const right = Math.min(xScale.right, xScale.getPixelForValue(peakIndex) + step / 2);
+    if (right <= left) return;
 
     const label = settings.label || 'Peak Week';
-    if (label) {
-      ctx.save();
-      ctx.font = '12px monospace';
-      ctx.fillStyle = '#4d3232';
-      const textWidth = ctx.measureText(label).width;
-      const textX = left + (right - left) / 2 - textWidth / 2;
-      const textY = chartArea.top - 8;
-      ctx.fillText(label, textX, textY);
-      ctx.restore();
-    }
+    if (!label) return;
+
+    const centerX = left + (right - left) / 2;
+    const textY = Math.max(chartArea.top + 2, Math.min(chartArea.top + 10, chartArea.bottom - 24));
+
+    ctx.save();
+    ctx.font = 'bold 12px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000000';
+    ctx.fillText(label, centerX, textY);
+    ctx.restore();
+  }
+};
+
+const barValueLabelsPlugin = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    if (!ctx) return;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta?.data?.length) return;
+
+    ctx.save();
+    ctx.font = '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#111';
+
+    meta.data.forEach((bar, index) => {
+      if (!bar || typeof bar.x !== 'number' || typeof bar.y !== 'number') return;
+      const value = chart.data.datasets[0].data[index];
+      if (value === undefined || value === null || value <= 0) return;
+
+      const labelY = bar.y < bar.base ? Math.max(chart.chartArea.top + 8, bar.y - 8) : Math.min(chart.chartArea.bottom - 8, bar.y + 8);
+      ctx.fillText(value.toLocaleString(), bar.x, labelY);
+    });
+
+    ctx.restore();
   }
 };
 
@@ -226,6 +270,8 @@ function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
 function renderWeekly() {
   dc('weekly');
+  const chartCanvas = document.getElementById('chartWeekly');
+  const chartBox = document.getElementById('weeklyChartBox');
   let rows = RAW[currentDisease].weekly_by_hospital;
   if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
   const weeks = GLOBAL_WEEKS;
@@ -234,29 +280,85 @@ function renderWeekly() {
   const data = weeks.map(w => totalsByWeek[w] || 0);
   // guard for empty dataset
   if (!weeks || !weeks.length) {
-    document.getElementById('chartWeekly').getContext && document.getElementById('chartWeekly').parentElement && (document.getElementById('chartWeekly').parentElement.innerHTML = '<div class="zero-msg">No data</div>');
+    chartCanvas.getContext && chartCanvas.parentElement && (chartCanvas.parentElement.innerHTML = '<div class="zero-msg">No data</div>');
     return;
+  }
+
+  const totalWeeks = weeks.length;
+  const maxStart = Math.max(0, totalWeeks - 5);
+  weeklyWindowStart = Math.max(0, Math.min(weeklyWindowStart, maxStart));
+  const start = weeklyWindowStart;
+  const end = Math.min(totalWeeks, start + 5);
+  const visibleWeeks = weeks.slice(start, end);
+  const visibleData = data.slice(start, end);
+
+  const existingSlider = document.getElementById('weeklySliderWrap');
+  if (existingSlider) existingSlider.remove();
+  if (totalWeeks > 5) {
+    const sliderWrap = document.createElement('div');
+    sliderWrap.id = 'weeklySliderWrap';
+    sliderWrap.style.display = 'flex';
+    sliderWrap.style.alignItems = 'center';
+    sliderWrap.style.gap = '10px';
+    sliderWrap.style.margin = '8px 0 0';
+    sliderWrap.style.padding = '0 4px';
+    sliderWrap.innerHTML = `
+      <span style="font-size:11px;color:#666;white-space:nowrap;">Data Zoom</span>
+      <input id="weeklyRange" type="range" min="0" max="${maxStart}" value="${start}" step="1" style="flex:1;accent-color:#4a4a4a;">
+      <span style="font-size:11px;color:#666;white-space:nowrap;">${start + 1}-${end} / ${totalWeeks}</span>
+    `;
+    const rangeInput = sliderWrap.querySelector('#weeklyRange');
+    rangeInput.oninput = () => {
+      weeklyWindowStart = Number(rangeInput.value);
+      renderWeekly();
+    };
+    chartBox.appendChild(sliderWrap);
   }
 
   // find peak index dynamically (sum across hospitals or filtered selection)
   let peakIndex = 0;
   let peakVal = -Infinity;
-  for (let i = 0; i < data.length; i++) {
-    if ((data[i] || 0) > peakVal) { peakVal = data[i] || 0; peakIndex = i; }
+  for (let i = 0; i < visibleData.length; i++) {
+    if ((visibleData[i] || 0) > peakVal) { peakVal = visibleData[i] || 0; peakIndex = i; }
   }
 
   const accent = '#4a4a4a';
   document.getElementById('legendWeekly').innerHTML = '';
 
-  // use the Morandi red with requested opacity via helper
-  const highlightColor = hexToRgba('#F5DCDA', 0.4);
+  const formatWeeklyTick = (rawDate, index) => {
+    if (!rawDate) return '';
+    const [year, month, day] = rawDate.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const shortMonth = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const labelDay = String(day).padStart(2, '0');
+    const prev = index > 0 ? visibleWeeks[index - 1] : null;
+    const prevDate = prev ? prev.split('-').map(Number) : null;
+    const isFirst = index === 0;
+    const monthChanged = !prevDate || prevDate[1] !== month || prevDate[0] !== year;
+    return isFirst || monthChanged ? `${shortMonth} ${labelDay}` : labelDay;
+  };
 
-  charts['weekly'] = new Chart(document.getElementById('chartWeekly'), {
+  charts['weekly'] = new Chart(chartCanvas, {
     type: 'bar',
-    data: { labels: weeks.map(w => w.slice(5)), datasets: [{ label: 'Total cases', data, backgroundColor: accent, borderRadius: 14, borderSkipped: false }] },
+    data: {
+      labels: visibleWeeks,
+      datasets: [{
+        label: 'Total cases',
+        data: visibleData,
+        backgroundColor: accent,
+        borderRadius: 14,
+        borderSkipped: false,
+        barPercentage: 1,
+        categoryPercentage: 0.9,
+        maxBarThickness: 110
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { top: 22, right: 24, bottom: 8, left: 0 }
+      },
       plugins: {
         legend: { display: false },
         weeklyPeakHighlight: {
@@ -266,14 +368,30 @@ function renderWeekly() {
       },
       scales: {
         x: {
-          grid: { display: false },
-          ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 },
-          offset: true
+          type: 'category',
+          offset: true,
+          ticks: {
+            font: { size: 10 },
+            align: 'center',
+            autoSkip: false,
+            maxTicksLimit: visibleWeeks.length,
+            padding: 4,
+            callback: (value, index) => formatWeeklyTick(visibleWeeks[index], index)
+          },
+          grid: {
+            display: true,
+            drawBorder: true,
+            drawOnChartArea: false,
+            color: 'rgba(0,0,0,0.12)',
+            lineWidth: 1,
+            tickLength: 0,
+            drawTicks: false
+          }
         },
         y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
       }
     },
-    plugins: [weeklyPeakHighlightPlugin]
+    plugins: [weeklyPeakHighlightPlugin, barValueLabelsPlugin]
   });
 }
 

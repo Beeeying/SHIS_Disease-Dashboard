@@ -20,6 +20,21 @@ let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
 let weeklyWindowStart = 0;
 
+function getCategoryBoundaries(scale, chartArea, pointCount) {
+  if (!scale || !chartArea || !pointCount) return [];
+
+  const centers = Array.from({ length: pointCount }, (_, index) => scale.getPixelForValue(index));
+  if (!centers.length) return [];
+
+  const boundaries = [chartArea.left];
+  for (let index = 1; index < centers.length; index++) {
+    boundaries.push((centers[index - 1] + centers[index]) / 2);
+  }
+  boundaries.push(chartArea.right);
+
+  return boundaries;
+}
+
 const weeklyPeakHighlightPlugin = {
   id: 'weeklyPeakHighlight',
   beforeDatasetsDraw(chart, args, pluginOptions) {
@@ -31,9 +46,9 @@ const weeklyPeakHighlightPlugin = {
     if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
 
     const xScale = scales.x;
-    const step = Math.max(12, (xScale.right - xScale.left) / Math.max(1, chart.data.labels.length));
-    const left = Math.max(xScale.left, xScale.getPixelForValue(peakIndex) - step / 2);
-    const right = Math.min(xScale.right, xScale.getPixelForValue(peakIndex) + step / 2);
+  const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+  const left = boundaries[peakIndex] ?? xScale.left;
+  const right = boundaries[peakIndex + 1] ?? xScale.right;
     if (right <= left) return;
 
     ctx.save();
@@ -51,16 +66,16 @@ const weeklyPeakHighlightPlugin = {
     if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
 
     const xScale = scales.x;
-    const step = Math.max(12, (xScale.right - xScale.left) / Math.max(1, chart.data.labels.length));
-    const left = Math.max(xScale.left, xScale.getPixelForValue(peakIndex) - step / 2);
-    const right = Math.min(xScale.right, xScale.getPixelForValue(peakIndex) + step / 2);
+  const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+  const left = boundaries[peakIndex] ?? xScale.left;
+  const right = boundaries[peakIndex + 1] ?? xScale.right;
     if (right <= left) return;
 
     const label = settings.label || 'Peak Week';
     if (!label) return;
 
     const centerX = left + (right - left) / 2;
-    const textY = Math.max(chartArea.top + 2, Math.min(chartArea.top + 10, chartArea.bottom - 24));
+  const textY = Math.max(14, chartArea.top - 14);
 
     ctx.save();
     ctx.font = 'bold 12px Arial, sans-serif';
@@ -91,8 +106,59 @@ const barValueLabelsPlugin = {
       const value = chart.data.datasets[0].data[index];
       if (value === undefined || value === null || value <= 0) return;
 
-      const labelY = bar.y < bar.base ? Math.max(chart.chartArea.top + 8, bar.y - 8) : Math.min(chart.chartArea.bottom - 8, bar.y + 8);
+      const barHeight = Math.abs(bar.base - bar.y);
+      const drawInside = barHeight >= 26;
+      const labelY = drawInside ? bar.y + barHeight / 2 : Math.max(chart.chartArea.top + 8, bar.y - 10);
+      ctx.fillStyle = drawInside ? '#FFFFFF' : '#111111';
       ctx.fillText(value.toLocaleString(), bar.x, labelY);
+    });
+
+    ctx.restore();
+  }
+};
+
+const weeklyIntervalGridPlugin = {
+  id: 'weeklyIntervalGrid',
+  beforeDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    if (!boundaries.length) return;
+
+    ctx.save();
+    ctx.strokeStyle = settings.lineColor || 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = settings.lineWidth || 1;
+
+    boundaries.forEach((x) => {
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  },
+  afterDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    const labels = settings.labels || [];
+    if (!boundaries.length || !labels.length) return;
+
+    ctx.save();
+    ctx.font = settings.font || '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = settings.color || '#444444';
+
+    labels.forEach((label, index) => {
+      const x = boundaries[index];
+      if (x === undefined) return;
+      ctx.fillText(label, x, chartArea.bottom + 10);
     });
 
     ctx.restore();
@@ -338,6 +404,8 @@ function renderWeekly() {
     return isFirst || monthChanged ? `${shortMonth} ${labelDay}` : labelDay;
   };
 
+  const boundaryLabels = visibleWeeks.map((week, index) => formatWeeklyTick(week, index));
+
   charts['weekly'] = new Chart(chartCanvas, {
     type: 'bar',
     data: {
@@ -348,8 +416,8 @@ function renderWeekly() {
         backgroundColor: accent,
         borderRadius: 14,
         borderSkipped: false,
-        barPercentage: 1,
-        categoryPercentage: 0.9,
+        barPercentage: 0.92,
+        categoryPercentage: 0.96,
         maxBarThickness: 110
       }]
     },
@@ -357,13 +425,17 @@ function renderWeekly() {
       responsive: true,
       maintainAspectRatio: false,
       layout: {
-        padding: { top: 22, right: 24, bottom: 8, left: 0 }
+        padding: { top: 38, right: 28, bottom: 30, left: 28 }
       },
       plugins: {
         legend: { display: false },
         weeklyPeakHighlight: {
           peakIndex,
           label: 'Peak Week'
+        },
+        weeklyIntervalGrid: {
+          enabled: true,
+          labels: boundaryLabels
         }
       },
       scales: {
@@ -371,6 +443,7 @@ function renderWeekly() {
           type: 'category',
           offset: true,
           ticks: {
+            display: false,
             font: { size: 10 },
             align: 'center',
             autoSkip: false,
@@ -379,19 +452,25 @@ function renderWeekly() {
             callback: (value, index) => formatWeeklyTick(visibleWeeks[index], index)
           },
           grid: {
-            display: true,
-            drawBorder: true,
+            display: false,
+            drawBorder: false,
             drawOnChartArea: false,
-            color: 'rgba(0,0,0,0.12)',
-            lineWidth: 1,
             tickLength: 0,
             drawTicks: false
           }
         },
-        y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
+        y: {
+          beginAtZero: true,
+          grace: '15%',
+          ticks: {
+            font: { size: 10 },
+            precision: 0,
+            callback: value => Number.isInteger(value) ? value : ''
+          }
+        }
       }
     },
-    plugins: [weeklyPeakHighlightPlugin, barValueLabelsPlugin]
+    plugins: [weeklyIntervalGridPlugin, weeklyPeakHighlightPlugin, barValueLabelsPlugin]
   });
 }
 

@@ -369,21 +369,34 @@ function renderHospital() {
 
   if (isMonthly) {
     const months = [...GLOBAL_MONTHS];
-    const monthCounts = RAW[currentDisease].monthly.reduce((map, item) => { map[item.month] = item.count; return map; }, {});
+    let rows = RAW[currentDisease].monthly_by_hospital || [];
+    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+    const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+    if (!rows.length) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+      document.getElementById('legendWeekly').innerHTML = '';
+      return;
+    }
     labels = months;
-    const data = months.map(m => monthCounts[m] || 0);
-    datasets = [{
-      label: 'Total cases',
-      data,
-      borderColor: color,
-      backgroundColor: hexToRgba(color, 0.18),
-      tension: 0.3,
-      fill: false,
-      pointRadius: 3,
-      borderWidth: 2
-    }];
-    totals = data;
-    document.getElementById('legendWeekly').innerHTML = `<span class="legend-item"><span class="legend-dot" style="background:${color}"></span>Total</span>`;
+    datasets = hospitals.map(h => {
+      const values = months.map(m => {
+        const r = rows.find(x => x.month === m && x['Hospital Name'] === h);
+        return r ? r.count : 0;
+      });
+      return {
+        label: h,
+        data: values,
+        borderColor: HOSP_COLORS[h] || '#888',
+        backgroundColor: hexToRgba(HOSP_COLORS[h] || '#888', 0.14),
+        tension: 0.3,
+        fill: false,
+        pointRadius: 3,
+        borderWidth: 2
+      };
+    });
+    document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+    totals = months.map((m, index) => datasets.reduce((sum, ds) => sum + (ds.data[index] || 0), 0));
   } else {
     let rows = RAW[currentDisease].weekly_by_hospital;
     if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);

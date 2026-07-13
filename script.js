@@ -12,7 +12,7 @@ const HOSP_COLORS = {
 };
 
 let currentDisease = 'Measles', selectedHospital = null, charts = {};
-let RAW = {}; // 原本寫死的資料，現在從 CSV 動態載入
+let RAW = {}; // 原本寫死的資料，現在從 JSON 動態載入
 let GLOBAL_WEEKS = [];
 let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
@@ -23,14 +23,95 @@ if (window.ChartAnnotation) {
   Chart.register(ChartAnnotation);
 }
 
-// 載入與解析 CSV 與 GeoJSON
+
+function adaptDashboardJson(json) {
+  const diseases = json && json.diseases ? json.diseases : {};
+  const adapted = {};
+
+  Object.entries(diseases).forEach(([disease, entry]) => {
+    adapted[disease] = {
+      total: Number(entry.total || 0),
+      weekly_by_hospital: (entry.weekly_by_hospital || []).map(r => ({
+        week: r.week,
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly_by_hospital: (entry.monthly_by_hospital || []).map(r => ({
+        month: r.month,
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly: (entry.monthly || []).map(r => ({
+        month: r.month,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_hospital: (entry.by_hospital || []).map(r => ({
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_gender: (entry.by_gender || []).map(r => ({
+        Gender: r.gender,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_age: (entry.by_age || []).map(r => ({
+        age_group: r.age_group || r.age || '',
+        count: Number(r.count ?? r.cases ?? 0)
+      }))
+    };
+  });
+
+  return adapted;
+}
+
+function rebuildGlobalPeriodsFromRaw(rawData) {
+  const weeks = new Set();
+  const months = new Set();
+
+  Object.values(rawData || {}).forEach(d => {
+    (d.weekly_by_hospital || []).forEach(r => {
+      if (r.week) weeks.add(r.week);
+    });
+    (d.monthly || []).forEach(r => {
+      if (r.month) months.add(r.month);
+    });
+  });
+
+  GLOBAL_WEEKS = [...weeks].sort();
+  GLOBAL_MONTHS = [...months].sort();
+}
+
+// 載入與解析 JSON 與 GeoJSON
 Promise.all([
-  fetch('data.csv').then(res => res.text()),
-  fetch('regions.geojson').then(res => res.json())
+  fetch('data/dashboard_data.json').then(res => {
+    if (!res.ok) {
+      throw new Error(`Failed to load dashboard data: ${res.status}`);
+    }
+    return res.json();
+  }),
+  fetch('regions.geojson').then(res => {
+    if (!res.ok) {
+      throw new Error(`Failed to load regions geojson: ${res.status}`);
+    }
+    return res.json();
+  })
 ])
-  .then(([csvText, geojson]) => {
-    RAW = parseCSV(csvText);
+  .then(([dashboardJson, geojson]) => {
+    RAW = adaptDashboardJson(dashboardJson);
+    rebuildGlobalPeriodsFromRaw(RAW);
+
+    // Optional future support if hospital-region mapping is added to dashboard_data.json
+    REGION_BY_HOSPITAL =
+      dashboardJson.hospital_regions ||
+      (dashboardJson.metadata && dashboardJson.metadata.hospital_regions) ||
+      REGION_BY_HOSPITAL ||
+      {};
+
     GEOJSON_FEATURES = geojson.features || [];
+
+    if (!RAW[currentDisease]) {
+      currentDisease = Object.keys(RAW)[0] || currentDisease;
+    }
+
     buildDiseaseButtons();
     setupViewSwitch();
     setDisease(currentDisease);

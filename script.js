@@ -18,10 +18,26 @@ let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
+let weeklyWindowStart = 0;
+
+function getCategoryBoundaries(scale, chartArea, pointCount) {
+  if (!scale || !chartArea || !pointCount) return [];
+
+  const centers = Array.from({ length: pointCount }, (_, index) => scale.getPixelForValue(index));
+  if (!centers.length) return [];
+
+  const boundaries = [chartArea.left];
+  for (let index = 1; index < centers.length; index++) {
+    boundaries.push((centers[index - 1] + centers[index]) / 2);
+  }
+  boundaries.push(chartArea.right);
+
+  return boundaries;
+}
 
 const weeklyPeakHighlightPlugin = {
   id: 'weeklyPeakHighlight',
-  beforeDatasetsDraw(chart, args, pluginOptions) {
+  beforeDatasetsDraw(chart) {
     const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
     const peakIndex = settings.peakIndex;
     if (peakIndex === undefined || peakIndex === null) return;
@@ -30,9 +46,9 @@ const weeklyPeakHighlightPlugin = {
     if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
 
     const xScale = scales.x;
-    const step = Math.max(12, (xScale.right - xScale.left) / Math.max(1, chart.data.labels.length));
-    const left = Math.max(xScale.left, xScale.getPixelForValue(peakIndex) - step / 2);
-    const right = Math.min(xScale.right, xScale.getPixelForValue(peakIndex) + step / 2);
+    const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+    const left = boundaries[peakIndex] ?? xScale.left;
+    const right = boundaries[peakIndex + 1] ?? xScale.right;
     if (right <= left) return;
 
     ctx.save();
@@ -40,18 +56,112 @@ const weeklyPeakHighlightPlugin = {
     ctx.globalAlpha = 0.95;
     ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
     ctx.restore();
+  },
+  afterDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
+    const peakIndex = settings.peakIndex;
+    if (peakIndex === undefined || peakIndex === null) return;
+
+    const { ctx, chartArea, scales } = chart;
+    if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
+
+    const xScale = scales.x;
+    const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+    const left = boundaries[peakIndex] ?? xScale.left;
+    const right = boundaries[peakIndex + 1] ?? xScale.right;
+    if (right <= left) return;
 
     const label = settings.label || 'Peak Week';
-    if (label) {
-      ctx.save();
-      ctx.font = '12px monospace';
-      ctx.fillStyle = '#4d3232';
-      const textWidth = ctx.measureText(label).width;
-      const textX = left + (right - left) / 2 - textWidth / 2;
-      const textY = chartArea.top - 8;
-      ctx.fillText(label, textX, textY);
-      ctx.restore();
-    }
+    if (!label) return;
+
+    const centerX = left + (right - left) / 2;
+    const textY = Math.max(14, chartArea.top - 14);
+
+    ctx.save();
+    ctx.font = 'bold 12px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000000';
+    ctx.fillText(label, centerX, textY);
+    ctx.restore();
+  }
+};
+
+const barValueLabelsPlugin = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    if (!ctx) return;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta?.data?.length) return;
+
+    ctx.save();
+    ctx.font = '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#111';
+
+    meta.data.forEach((bar, index) => {
+      if (!bar || typeof bar.x !== 'number' || typeof bar.y !== 'number') return;
+      const value = chart.data.datasets[0].data[index];
+      if (value === undefined || value === null || value <= 0) return;
+
+      const barHeight = Math.abs(bar.base - bar.y);
+      const drawInside = barHeight >= 26;
+      const labelY = drawInside ? bar.y + barHeight / 2 : Math.max(chart.chartArea.top + 8, bar.y - 10);
+      ctx.fillStyle = drawInside ? '#FFFFFF' : '#111111';
+      ctx.fillText(value.toLocaleString(), bar.x, labelY);
+    });
+
+    ctx.restore();
+  }
+};
+
+const weeklyIntervalGridPlugin = {
+  id: 'weeklyIntervalGrid',
+  beforeDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    if (!boundaries.length) return;
+
+    ctx.save();
+    ctx.strokeStyle = settings.lineColor || 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = settings.lineWidth || 1;
+
+    boundaries.forEach((x) => {
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  },
+  afterDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    const labels = settings.labels || [];
+    if (!boundaries.length || !labels.length) return;
+
+    ctx.save();
+    ctx.font = settings.font || '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = settings.color || '#444444';
+
+    labels.forEach((label, index) => {
+      const x = boundaries[index];
+      if (x === undefined) return;
+      ctx.fillText(label, x, chartArea.bottom + 10);
+    });
+
+    ctx.restore();
   }
 };
 
@@ -300,68 +410,165 @@ function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
 function renderWeekly() {
   dc('weekly');
-  const rows = RAW[currentDisease].weekly_by_hospital;
+  let chartCanvas = document.getElementById('chartWeekly');
+  const chartBox = document.getElementById('weeklyChartBox');
+  if (!chartBox) return;
+
+  if (!chartCanvas) {
+    chartBox.innerHTML = '<canvas id="chartWeekly"></canvas>';
+    chartCanvas = document.getElementById('chartWeekly');
+  }
+
+  let rows = RAW[currentDisease].weekly_by_hospital;
+  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+
   const weeks = GLOBAL_WEEKS;
   const totalsByWeek = {};
   rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
   const data = weeks.map(w => totalsByWeek[w] || 0);
-  // guard for empty dataset
-  if (!weeks || !weeks.length) {
-    document.getElementById('chartWeekly').getContext && document.getElementById('chartWeekly').parentElement && (document.getElementById('chartWeekly').parentElement.innerHTML = '<div class="zero-msg">No data</div>');
+
+  if (!weeks.length || data.every(v => v === 0)) {
+    chartCanvas.parentElement && (chartCanvas.parentElement.innerHTML = '<div class="zero-msg">No data</div>');
     return;
   }
 
-  // find peak index dynamically (sum across hospitals or filtered selection)
+  const totalWeeks = weeks.length;
+  const maxStart = Math.max(0, totalWeeks - 5);
+  weeklyWindowStart = Math.max(0, Math.min(weeklyWindowStart, maxStart));
+  const start = weeklyWindowStart;
+  const end = Math.min(totalWeeks, start + 5);
+  const visibleWeeks = weeks.slice(start, end);
+  const visibleData = data.slice(start, end);
+
+  const existingSlider = document.getElementById('weeklySliderWrap');
+  if (existingSlider) existingSlider.remove();
+  if (totalWeeks > 5) {
+    const sliderWrap = document.createElement('div');
+    sliderWrap.id = 'weeklySliderWrap';
+    sliderWrap.style.display = 'flex';
+    sliderWrap.style.alignItems = 'center';
+    sliderWrap.style.gap = '10px';
+    sliderWrap.style.margin = '8px 0 0';
+    sliderWrap.style.padding = '0 4px';
+    sliderWrap.innerHTML = `
+      <span style="font-size:11px;color:#666;white-space:nowrap;">Data Zoom</span>
+      <input id="weeklyRange" type="range" min="0" max="${maxStart}" value="${start}" step="1" style="flex:1;accent-color:#4a4a4a;">
+      <span style="font-size:11px;color:#666;white-space:nowrap;">${start + 1}-${end} / ${totalWeeks}</span>
+    `;
+    const rangeInput = sliderWrap.querySelector('#weeklyRange');
+    rangeInput.oninput = () => {
+      weeklyWindowStart = Number(rangeInput.value);
+      renderWeekly();
+    };
+    chartBox.appendChild(sliderWrap);
+  }
+
   let peakIndex = 0;
   let peakVal = -Infinity;
-  for (let i = 0; i < data.length; i++) {
-    if ((data[i] || 0) > peakVal) { peakVal = data[i] || 0; peakIndex = i; }
+  for (let i = 0; i < visibleData.length; i++) {
+    if ((visibleData[i] || 0) > peakVal) {
+      peakVal = visibleData[i] || 0;
+      peakIndex = i;
+    }
   }
 
   const accent = '#4a4a4a';
   document.getElementById('legendWeekly').innerHTML = '';
 
-  // use the Morandi red with requested opacity via helper
-  const highlightColor = hexToRgba('#F5DCDA', 0.4);
+  const formatWeeklyTick = (rawDate, index) => {
+    if (!rawDate) return '';
+    const [year, month, day] = rawDate.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const shortMonth = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const labelDay = String(day).padStart(2, '0');
+    const prev = index > 0 ? visibleWeeks[index - 1] : null;
+    const prevDate = prev ? prev.split('-').map(Number) : null;
+    const isFirst = index === 0;
+    const monthChanged = !prevDate || prevDate[1] !== month || prevDate[0] !== year;
+    return isFirst || monthChanged ? `${shortMonth} ${labelDay}` : labelDay;
+  };
 
-  charts['weekly'] = new Chart(document.getElementById('chartWeekly'), {
+  const boundaryLabels = visibleWeeks.map((week, index) => formatWeeklyTick(week, index));
+
+  charts['weekly'] = new Chart(chartCanvas, {
     type: 'bar',
-    data: { labels: weeks.map(w => w.slice(5)), datasets: [{ label: 'Total cases', data, backgroundColor: accent, borderRadius: 14, borderSkipped: false }] },
+    data: {
+      labels: visibleWeeks,
+      datasets: [{
+        label: 'Total cases',
+        data: visibleData,
+        backgroundColor: accent,
+        borderRadius: 14,
+        borderSkipped: false,
+        barPercentage: 0.92,
+        categoryPercentage: 0.96,
+        maxBarThickness: 110
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { top: 38, right: 28, bottom: 30, left: 28 }
+      },
       plugins: {
         legend: { display: false },
         weeklyPeakHighlight: {
           peakIndex,
           label: 'Peak Week'
+        },
+        weeklyIntervalGrid: {
+          enabled: true,
+          labels: boundaryLabels
         }
       },
       scales: {
         x: {
-          grid: { display: false },
-          ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 },
-          offset: true
+          type: 'category',
+          offset: true,
+          ticks: {
+            display: false,
+            font: { size: 10 },
+            align: 'center',
+            autoSkip: false,
+            maxTicksLimit: visibleWeeks.length,
+            padding: 4,
+            callback: (value, index) => formatWeeklyTick(visibleWeeks[index], index)
+          },
+          grid: {
+            display: false,
+            drawBorder: false,
+            drawOnChartArea: false,
+            tickLength: 0,
+            drawTicks: false
+          }
         },
-        y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
+        y: {
+          beginAtZero: true,
+          grace: '15%',
+          ticks: {
+            font: { size: 10 },
+            precision: 0,
+            callback: value => Number.isInteger(value) ? value : ''
+          }
+        }
       }
     },
-    plugins: [weeklyPeakHighlightPlugin]
+    plugins: [weeklyIntervalGridPlugin, weeklyPeakHighlightPlugin, barValueLabelsPlugin]
   });
 }
 
 function renderHospital() {
   dc('hosp');
   const isMonthly = activeView === 'monthly';
-  const color = DISEASE_COLORS[currentDisease] || '#378ADD';
   const chartHost = document.getElementById('chartHosp')?.parentElement;
   if (!chartHost) return;
-  const ensureCanvas = () => {
-    if (!document.getElementById('chartHosp')) {
-      chartHost.innerHTML = '<canvas id="chartHosp"></canvas>';
-    }
-  };
-  ensureCanvas();
+
+  let chartCanvas = document.getElementById('chartHosp');
+  if (!chartCanvas) {
+    chartHost.innerHTML = '<canvas id="chartHosp"></canvas>';
+    chartCanvas = document.getElementById('chartHosp');
+  }
 
   let labels = [];
   let datasets = [];
@@ -409,7 +616,10 @@ function renderHospital() {
     }
     labels = weeks.map(w => w.slice(5));
     datasets = hospitals.map(h => {
-      const values = weeks.map(w => { const r = rows.find(x => x.week === w && x['Hospital Name'] === h); return r ? r.count : 0; });
+      const values = weeks.map(w => {
+        const r = rows.find(x => x.week === w && x['Hospital Name'] === h);
+        return r ? r.count : 0;
+      });
       return {
         label: h,
         data: values,
@@ -435,7 +645,7 @@ function renderHospital() {
   const highlightColor = hexToRgba('#F5DCDA', 0.4);
   const maxTotal = Math.max(...totals, 1);
 
-  charts['hosp'] = new Chart(document.getElementById('chartHosp'), {
+  charts['hosp'] = new Chart(chartCanvas, {
     type: 'line',
     data: { labels, datasets },
     options: {

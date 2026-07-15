@@ -59,6 +59,27 @@ def find_columns(df: pd.DataFrame, prefixes_or_names: list[str]) -> list[str]:
     return result
 
 
+def load_hospital_regions(path: Path) -> dict[str, str]:
+    if not path:
+        return {}
+
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Hospital regions file not found: {path}")
+
+    with path.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    if not isinstance(payload, dict):
+        raise ValueError("Hospital regions file must contain a JSON object")
+
+    return {
+        str(key).strip(): str(value).strip()
+        for key, value in payload.items()
+        if key is not None and value is not None
+    }
+
+
 def normalize_base_columns(df: pd.DataFrame) -> pd.DataFrame:
     # Date
     if "Date" not in df.columns:
@@ -217,6 +238,10 @@ def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
     subset["age_group"] = subset["age"].apply(age_group)
     subset["week"] = week_start_monday(subset["date"])
     subset["month"] = month_label(subset["date"])
+    if "region" not in subset.columns:
+        subset["region"] = "Unknown"
+    else:
+        subset["region"] = subset["region"].fillna("Unknown")
 
     by_age = sort_age_records(group_records(subset, ["age_group"], ["age_group"]))
 
@@ -226,6 +251,9 @@ def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
         "monthly_by_hospital": group_records(subset, ["month", "hospital"], ["month", "hospital"]),
         "monthly": group_records(subset, ["month"], ["month"]),
         "by_hospital": group_records(subset, ["hospital"], ["hospital"]),
+        "by_region": group_records(subset, ["region"], ["region"]),
+        "weekly_by_region": group_records(subset, ["week", "region"], ["week", "region"]),
+        "monthly_by_region": group_records(subset, ["month", "region"], ["month", "region"]),
         "by_gender": group_records(subset, ["gender"], ["gender"]),
         "by_age": by_age,
     }
@@ -234,7 +262,17 @@ def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
 def validate_disease_summary(summary: dict[str, Any]) -> dict[str, Any]:
     total = summary["total"]
     checks = {}
-    for key in ["weekly_by_hospital", "monthly_by_hospital", "monthly", "by_hospital", "by_gender", "by_age"]:
+    for key in [
+        "weekly_by_hospital",
+        "monthly_by_hospital",
+        "monthly",
+        "by_hospital",
+        "by_region",
+        "weekly_by_region",
+        "monthly_by_region",
+        "by_gender",
+        "by_age",
+    ]:
         checks[f"{key}_sum"] = sum(int(r["count"]) for r in summary.get(key, []))
         checks[f"{key}_matches_total"] = checks[f"{key}_sum"] == total
     return checks
@@ -244,8 +282,13 @@ def build_dashboard_data(
     input_path: Path,
     definitions_path: Path,
     expected_hospitals: int | None = None,
+    hospital_regions_path: Path | None = None,
 ) -> dict[str, Any]:
     definitions = json.loads(definitions_path.read_text(encoding="utf-8"))
+    hospital_regions = load_hospital_regions(
+        hospital_regions_path or Path(__file__).resolve().parent.parent / "data" / "hospital_regions.json"
+    )
+
     df = load_excel(input_path)
     original_columns = list(df.columns)
     df = normalize_base_columns(df)
@@ -253,6 +296,7 @@ def build_dashboard_data(
     # Restrict aggregation to rows with a valid date and hospital.
     valid_for_time_series = df["date"].notna() & df["hospital"].notna()
     df_valid = df.loc[valid_for_time_series].copy()
+    df_valid["region"] = df_valid["hospital"].map(hospital_regions).fillna("Unknown")
 
     text_blob = make_text_blob(df_valid)
     icd_blob = make_icd_blob(df_valid)
@@ -270,6 +314,9 @@ def build_dashboard_data(
     invalid_age_mask = age_numeric.isna() | (age_numeric < 0) | (age_numeric > 120)
 
     hospitals = sorted([h for h in df_valid["hospital"].dropna().unique().tolist()])
+    hospitals_without_region = sorted(
+        [h for h in hospitals if str(h) not in hospital_regions]
+    )
 
     data_quality = {
         "source_row_count": int(len(df)),
@@ -282,6 +329,7 @@ def build_dashboard_data(
         "reporting_hospitals": len(hospitals),
         "expected_hospitals": expected_hospitals,
         "hospital_list": hospitals,
+        "hospitals_without_region": hospitals_without_region,
         "disease_validation": validation,
     }
 
@@ -294,6 +342,8 @@ def build_dashboard_data(
         "source_columns": original_columns,
         "definition_file": definitions_path.name,
         "definition_schema_version": definitions.get("schema_version"),
+        "hospital_regions": hospital_regions,
+        "geojson_region_property": "NAM_1",
     }
 
     return {
@@ -310,16 +360,23 @@ def main() -> None:
     parser.add_argument("--definitions", required=True, help="Path to disease_definitions.json")
     parser.add_argument("--output", required=True, help="Output path for dashboard_data.json")
     parser.add_argument("--expected-hospitals", type=int, default=None)
+    parser.add_argument(
+        "--hospital-regions",
+        default=str(Path(__file__).resolve().parent.parent / "data" / "hospital_regions.json"),
+        help="Path to hospital_regions.json",
+    )
     args = parser.parse_args()
 
     input_path = Path(args.input)
     definitions_path = Path(args.definitions)
     output_path = Path(args.output)
+    hospital_regions_path = Path(args.hospital_regions)
 
     dashboard_data = build_dashboard_data(
         input_path=input_path,
         definitions_path=definitions_path,
         expected_hospitals=args.expected_hospitals,
+        hospital_regions_path=hospital_regions_path,
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -2,7 +2,7 @@
   "metadata": {
     "schema_version": "0.1",
     "source_file": "All Hospitals Data for last Three month.xlsx",
-    "generated_at_utc": "2026-07-09T12:19:27Z",
+    "generated_at_utc": "2026-07-14T13:28:55Z",
     "date_min": "2026-01-01",
     "date_max": "2026-04-18",
     "source_columns": [
@@ -29,7 +29,19 @@
       "Lab Name .1"
     ],
     "definition_file": "disease_definitions.json",
-    "definition_schema_version": "0.1"
+    "definition_schema_version": "0.1",
+    "hospital_regions": {
+      "BA": "Awdal",
+      "BE": "Woqooyi Galbeed",
+      "BO": "Woqooyi Galbeed",
+      "BU": "Awdal",
+      "EG": "Togdheer",
+      "GH": "Sool",
+      "HG": "Togdheer",
+      "MC": "Sanaag",
+      "SL": "Sanaag"
+    },
+    "geojson_region_property": "NAM_1"
   },
   "disease_definitions": {
     "Measles": {
@@ -118,6 +130,7 @@
       "MC",
       "SL"
     ],
+    "hospitals_without_region": [],
     "disease_validation": {
       "Measles": {
         "weekly_by_hospital_sum": 420,
@@ -128,6 +141,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 420,
         "by_hospital_matches_total": true,
+        "by_region_sum": 420,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 420,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 420,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 420,
         "by_gender_matches_total": true,
         "by_age_sum": 420,
@@ -142,6 +161,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 976,
         "by_hospital_matches_total": true,
+        "by_region_sum": 976,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 976,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 976,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 976,
         "by_gender_matches_total": true,
         "by_age_sum": 976,
@@ -156,6 +181,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 305,
         "by_hospital_matches_total": true,
+        "by_region_sum": 305,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 305,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 305,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 305,
         "by_gender_matches_total": true,
         "by_age_sum": 305,
@@ -170,6 +201,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 49,
         "by_hospital_matches_total": true,
+        "by_region_sum": 49,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 49,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 49,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 49,
         "by_gender_matches_total": true,
         "by_age_sum": 49,
@@ -184,6 +221,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 165,
         "by_hospital_matches_total": true,
+        "by_region_sum": 165,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 165,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 165,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 165,
         "by_gender_matches_total": true,
         "by_age_sum": 165,
@@ -198,6 +241,12 @@
         "monthly_matches_total": true,
         "by_hospital_sum": 65,
         "by_hospital_matches_total": true,
+        "by_region_sum": 65,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 65,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 65,
+        "monthly_by_region_matches_total": true,
         "by_gender_sum": 65,
         "by_gender_matches_total": true,
         "by_age_sum": 65,
@@ -427,6 +476,209 @@
         {
           "hospital": "MC",
           "count": 16
+        }
+      ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 401
+        },
+        {
+          "region": "Sanaag",
+          "count": 16
+        },
+        {
+          "region": "Sool",
+          "count": 3
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Awdal",
+          "count": 4
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Awdal",
+          "count": 5
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Awdal",
+          "count": 14
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Awdal",
+          "count": 11
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Awdal",
+          "count": 14
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Awdal",
+          "count": 12
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Awdal",
+          "count": 21
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Awdal",
+          "count": 18
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Awdal",
+          "count": 37
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sanaag",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Awdal",
+          "count": 29
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Awdal",
+          "count": 56
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Awdal",
+          "count": 57
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Awdal",
+          "count": 59
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Awdal",
+          "count": 63
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sanaag",
+          "count": 1
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 23
+        },
+        {
+          "month": "2026-01",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 58
+        },
+        {
+          "month": "2026-02",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "region": "Awdal",
+          "count": 153
+        },
+        {
+          "month": "2026-03",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 167
+        },
+        {
+          "month": "2026-04",
+          "region": "Sanaag",
+          "count": 4
         }
       ],
       "by_gender": [
@@ -1168,6 +1420,482 @@
           "count": 5
         }
       ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 438
+        },
+        {
+          "region": "Sanaag",
+          "count": 26
+        },
+        {
+          "region": "Sool",
+          "count": 61
+        },
+        {
+          "region": "Togdheer",
+          "count": 409
+        },
+        {
+          "region": "Woqooyi Galbeed",
+          "count": 42
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2025-12-29",
+          "region": "Awdal",
+          "count": 5
+        },
+        {
+          "week": "2025-12-29",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2025-12-29",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2025-12-29",
+          "region": "Togdheer",
+          "count": 13
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 11
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Togdheer",
+          "count": 10
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Awdal",
+          "count": 17
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Togdheer",
+          "count": 18
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Awdal",
+          "count": 37
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Togdheer",
+          "count": 25
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Woqooyi Galbeed",
+          "count": 5
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Awdal",
+          "count": 56
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Sanaag",
+          "count": 6
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Togdheer",
+          "count": 34
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Woqooyi Galbeed",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Awdal",
+          "count": 92
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Sool",
+          "count": 13
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Togdheer",
+          "count": 34
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Woqooyi Galbeed",
+          "count": 6
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Awdal",
+          "count": 47
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sanaag",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sool",
+          "count": 13
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Togdheer",
+          "count": 36
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Awdal",
+          "count": 59
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sool",
+          "count": 9
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Togdheer",
+          "count": 73
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Woqooyi Galbeed",
+          "count": 6
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Awdal",
+          "count": 27
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sool",
+          "count": 11
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Togdheer",
+          "count": 44
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Awdal",
+          "count": 11
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Sanaag",
+          "count": 3
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Togdheer",
+          "count": 30
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Woqooyi Galbeed",
+          "count": 5
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Awdal",
+          "count": 14
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Togdheer",
+          "count": 22
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Awdal",
+          "count": 9
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Togdheer",
+          "count": 14
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Awdal",
+          "count": 17
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Togdheer",
+          "count": 13
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Awdal",
+          "count": 18
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sanaag",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Togdheer",
+          "count": 13
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Awdal",
+          "count": 11
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Togdheer",
+          "count": 19
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Awdal",
+          "count": 7
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Togdheer",
+          "count": 11
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 112
+        },
+        {
+          "month": "2026-01",
+          "region": "Sanaag",
+          "count": 8
+        },
+        {
+          "month": "2026-01",
+          "region": "Sool",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 92
+        },
+        {
+          "month": "2026-01",
+          "region": "Woqooyi Galbeed",
+          "count": 12
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 238
+        },
+        {
+          "month": "2026-02",
+          "region": "Sanaag",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 46
+        },
+        {
+          "month": "2026-02",
+          "region": "Togdheer",
+          "count": 185
+        },
+        {
+          "month": "2026-02",
+          "region": "Woqooyi Galbeed",
+          "count": 16
+        },
+        {
+          "month": "2026-03",
+          "region": "Awdal",
+          "count": 58
+        },
+        {
+          "month": "2026-03",
+          "region": "Sanaag",
+          "count": 12
+        },
+        {
+          "month": "2026-03",
+          "region": "Sool",
+          "count": 5
+        },
+        {
+          "month": "2026-03",
+          "region": "Togdheer",
+          "count": 91
+        },
+        {
+          "month": "2026-03",
+          "region": "Woqooyi Galbeed",
+          "count": 12
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 30
+        },
+        {
+          "month": "2026-04",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "region": "Togdheer",
+          "count": 41
+        },
+        {
+          "month": "2026-04",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        }
+      ],
       "by_gender": [
         {
           "gender": "F",
@@ -1730,6 +2458,358 @@
           "count": 29
         }
       ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 9
+        },
+        {
+          "region": "Sool",
+          "count": 24
+        },
+        {
+          "region": "Togdheer",
+          "count": 45
+        },
+        {
+          "region": "Woqooyi Galbeed",
+          "count": 227
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2025-12-29",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Woqooyi Galbeed",
+          "count": 6
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Woqooyi Galbeed",
+          "count": 14
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Woqooyi Galbeed",
+          "count": 14
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Togdheer",
+          "count": 5
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Woqooyi Galbeed",
+          "count": 46
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Sool",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Woqooyi Galbeed",
+          "count": 29
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Woqooyi Galbeed",
+          "count": 25
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Woqooyi Galbeed",
+          "count": 19
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sool",
+          "count": 4
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Woqooyi Galbeed",
+          "count": 7
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Woqooyi Galbeed",
+          "count": 11
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Woqooyi Galbeed",
+          "count": 5
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Woqooyi Galbeed",
+          "count": 8
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Woqooyi Galbeed",
+          "count": 8
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Woqooyi Galbeed",
+          "count": 17
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Woqooyi Galbeed",
+          "count": 16
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 4
+        },
+        {
+          "month": "2026-01",
+          "region": "Sool",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 17
+        },
+        {
+          "month": "2026-01",
+          "region": "Woqooyi Galbeed",
+          "count": 73
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 12
+        },
+        {
+          "month": "2026-02",
+          "region": "Togdheer",
+          "count": 10
+        },
+        {
+          "month": "2026-02",
+          "region": "Woqooyi Galbeed",
+          "count": 86
+        },
+        {
+          "month": "2026-03",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "region": "Togdheer",
+          "count": 15
+        },
+        {
+          "month": "2026-03",
+          "region": "Woqooyi Galbeed",
+          "count": 29
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "region": "Woqooyi Galbeed",
+          "count": 39
+        }
+      ],
       "by_gender": [
         {
           "gender": "F",
@@ -1986,6 +3066,193 @@
         {
           "hospital": "HG",
           "count": 33
+        }
+      ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 5
+        },
+        {
+          "region": "Sool",
+          "count": 8
+        },
+        {
+          "region": "Togdheer",
+          "count": 35
+        },
+        {
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2025-12-29",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Togdheer",
+          "count": 5
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sool",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Togdheer",
+          "count": 2
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 10
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "month": "2026-02",
+          "region": "Togdheer",
+          "count": 10
+        },
+        {
+          "month": "2026-03",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "month": "2026-03",
+          "region": "Togdheer",
+          "count": 9
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "region": "Sool",
+          "count": 4
+        },
+        {
+          "month": "2026-04",
+          "region": "Togdheer",
+          "count": 6
+        },
+        {
+          "month": "2026-04",
+          "region": "Woqooyi Galbeed",
+          "count": 1
         }
       ],
       "by_gender": [
@@ -2389,6 +3656,317 @@
           "count": 1
         }
       ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 7
+        },
+        {
+          "region": "Sanaag",
+          "count": 128
+        },
+        {
+          "region": "Sool",
+          "count": 13
+        },
+        {
+          "region": "Togdheer",
+          "count": 14
+        },
+        {
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2025-12-29",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "week": "2025-12-29",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Sanaag",
+          "count": 7
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Sanaag",
+          "count": 13
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Sanaag",
+          "count": 8
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Sanaag",
+          "count": 7
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sanaag",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sanaag",
+          "count": 6
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sanaag",
+          "count": 8
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Sanaag",
+          "count": 6
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sanaag",
+          "count": 6
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Sanaag",
+          "count": 27
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sanaag",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sool",
+          "count": 4
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sanaag",
+          "count": 14
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sanaag",
+          "count": 5
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Togdheer",
+          "count": 2
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "region": "Sanaag",
+          "count": 40
+        },
+        {
+          "month": "2026-01",
+          "region": "Sool",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 9
+        },
+        {
+          "month": "2026-01",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Sanaag",
+          "count": 21
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "month": "2026-02",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "region": "Sanaag",
+          "count": 46
+        },
+        {
+          "month": "2026-03",
+          "region": "Sool",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "month": "2026-03",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "region": "Sanaag",
+          "count": 21
+        },
+        {
+          "month": "2026-04",
+          "region": "Sool",
+          "count": 5
+        },
+        {
+          "month": "2026-04",
+          "region": "Togdheer",
+          "count": 2
+        }
+      ],
       "by_gender": [
         {
           "gender": "F",
@@ -2763,6 +4341,282 @@
         {
           "hospital": "MC",
           "count": 1
+        }
+      ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 23
+        },
+        {
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "region": "Togdheer",
+          "count": 20
+        },
+        {
+          "region": "Woqooyi Galbeed",
+          "count": 20
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2025-12-29",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "week": "2025-12-29",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Togdheer",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Woqooyi Galbeed",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Awdal",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Woqooyi Galbeed",
+          "count": 3
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Togdheer",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Awdal",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "region": "Woqooyi Galbeed",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Awdal",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "region": "Sool",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Togdheer",
+          "count": 5
+        },
+        {
+          "month": "2026-02",
+          "region": "Woqooyi Galbeed",
+          "count": 5
+        },
+        {
+          "month": "2026-03",
+          "region": "Awdal",
+          "count": 7
+        },
+        {
+          "month": "2026-03",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "month": "2026-03",
+          "region": "Woqooyi Galbeed",
+          "count": 8
+        },
+        {
+          "month": "2026-04",
+          "region": "Awdal",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "region": "Sanaag",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "region": "Togdheer",
+          "count": 4
+        },
+        {
+          "month": "2026-04",
+          "region": "Woqooyi Galbeed",
+          "count": 6
         }
       ],
       "by_gender": [

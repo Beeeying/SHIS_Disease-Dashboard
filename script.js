@@ -493,10 +493,10 @@ function renderMonthly() {
   dc('monthly');
   const months = GLOBAL_MONTHS;
   const monthCounts = RAW[currentDisease].monthly.reduce((map, item) => { map[item.month] = item.count; return map; }, {});
-  const color = DISEASE_COLORS[currentDisease];
+  const accent = '#4a4a4a';
   charts['monthly'] = new Chart(document.getElementById('chartMonthly'), {
     type:'bar',
-    data:{ labels:months.map(m=>m), datasets:[{ data:months.map(m=>monthCounts[m] || 0), backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:4 }] },
+    data:{ labels:months.map(m=>m), datasets:[{ data:months.map(m=>monthCounts[m] || 0), backgroundColor:accent, borderColor:accent, borderWidth:0, borderRadius:14, borderSkipped:false, barPercentage:0.92, categoryPercentage:0.96, maxBarThickness:110 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
       scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } }

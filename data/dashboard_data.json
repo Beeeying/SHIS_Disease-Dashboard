@@ -1,0 +1,2806 @@
+{
+  "metadata": {
+    "schema_version": "0.1",
+    "source_file": "All Hospitals Data for last Three month.xlsx",
+    "generated_at_utc": "2026-07-09T12:19:27Z",
+    "date_min": "2026-01-01",
+    "date_max": "2026-04-18",
+    "source_columns": [
+      "Heath ID",
+      "Date",
+      "Pateints Name",
+      "Phone",
+      "Gender",
+      "Age",
+      "Hospital Name",
+      "Department Name",
+      "Clinic Remark",
+      "ICD10Code",
+      "ICD10 Name",
+      "ICD10Code_2",
+      "ICD10 Name_2",
+      "Med Number",
+      "Med Name",
+      "Med Number .1",
+      "Med Name .1",
+      "Lab Number",
+      "Lab Name",
+      "Lab Number .1",
+      "Lab Name .1"
+    ],
+    "definition_file": "disease_definitions.json",
+    "definition_schema_version": "0.1"
+  },
+  "disease_definitions": {
+    "Measles": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "B05"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 B05* measles."
+    },
+    "Dengue": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A90",
+        "A91"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A90* dengue fever and A91* dengue haemorrhagic fever."
+    },
+    "Malaria": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "B50",
+        "B51",
+        "B52",
+        "B53",
+        "B54"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 B50-B54 malaria."
+    },
+    "Cholera": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A00"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A00* cholera."
+    },
+    "AWD": {
+      "match_mode": "icd_and_keyword",
+      "icd10_prefixes": [
+        "A09"
+      ],
+      "keywords_any": [
+        "acute watery",
+        "watery diarrhea",
+        "watery diarrhoea",
+        "watery stool",
+        "loose stool",
+        "loose motion"
+      ],
+      "notes": "Provisional acute watery diarrhoea definition: A09* plus watery/loose stool terms in clinical text. This must be reviewed because A09 alone captures a much broader gastroenteritis group."
+    },
+    "TB": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19"
+      ],
+      "keywords_any": [],
+      "notes": "Strict active tuberculosis definition using ICD-10 A15-A19. Previous prototype numbers may have included sequelae or TB-associated codes; review if you need to match legacy totals."
+    }
+  },
+  "data_quality": {
+    "source_row_count": 61519,
+    "valid_rows_for_time_series": 61519,
+    "missing_date_count": 0,
+    "missing_hospital_count": 0,
+    "missing_gender_count": 0,
+    "missing_age_count": 0,
+    "invalid_age_count": 18,
+    "reporting_hospitals": 9,
+    "expected_hospitals": 12,
+    "hospital_list": [
+      "BA",
+      "BE",
+      "BO",
+      "BU",
+      "EG",
+      "GH",
+      "HG",
+      "MC",
+      "SL"
+    ],
+    "disease_validation": {
+      "Measles": {
+        "weekly_by_hospital_sum": 420,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 420,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 420,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 420,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 420,
+        "by_gender_matches_total": true,
+        "by_age_sum": 420,
+        "by_age_matches_total": true
+      },
+      "Dengue": {
+        "weekly_by_hospital_sum": 976,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 976,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 976,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 976,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 976,
+        "by_gender_matches_total": true,
+        "by_age_sum": 976,
+        "by_age_matches_total": true
+      },
+      "Malaria": {
+        "weekly_by_hospital_sum": 305,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 305,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 305,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 305,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 305,
+        "by_gender_matches_total": true,
+        "by_age_sum": 305,
+        "by_age_matches_total": true
+      },
+      "Cholera": {
+        "weekly_by_hospital_sum": 49,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 49,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 49,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 49,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 49,
+        "by_gender_matches_total": true,
+        "by_age_sum": 49,
+        "by_age_matches_total": true
+      },
+      "AWD": {
+        "weekly_by_hospital_sum": 165,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 165,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 165,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 165,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 165,
+        "by_gender_matches_total": true,
+        "by_age_sum": 165,
+        "by_age_matches_total": true
+      },
+      "TB": {
+        "weekly_by_hospital_sum": 65,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 65,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 65,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 65,
+        "by_hospital_matches_total": true,
+        "by_gender_sum": 65,
+        "by_gender_matches_total": true,
+        "by_age_sum": 65,
+        "by_age_matches_total": true
+      }
+    }
+  },
+  "diseases": {
+    "Measles": {
+      "total": 420,
+      "weekly_by_hospital": [
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BU",
+          "count": 4
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BU",
+          "count": 5
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BU",
+          "count": 14
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BU",
+          "count": 11
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BU",
+          "count": 14
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BU",
+          "count": 12
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BU",
+          "count": 21
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BU",
+          "count": 18
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BU",
+          "count": 37
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "MC",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BU",
+          "count": 29
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BU",
+          "count": 56
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BU",
+          "count": 57
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BU",
+          "count": 59
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BU",
+          "count": 63
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "MC",
+          "count": 1
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 23
+        },
+        {
+          "month": "2026-01",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 58
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "MC",
+          "count": 5
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BU",
+          "count": 153
+        },
+        {
+          "month": "2026-03",
+          "hospital": "MC",
+          "count": 5
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 167
+        },
+        {
+          "month": "2026-04",
+          "hospital": "MC",
+          "count": 4
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 27
+        },
+        {
+          "month": "2026-02",
+          "count": 64
+        },
+        {
+          "month": "2026-03",
+          "count": 158
+        },
+        {
+          "month": "2026-04",
+          "count": 171
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BU",
+          "count": 401
+        },
+        {
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "hospital": "MC",
+          "count": 16
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 189
+        },
+        {
+          "gender": "M",
+          "count": 231
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 219
+        },
+        {
+          "age_group": "5-14",
+          "count": 71
+        },
+        {
+          "age_group": "15-24",
+          "count": 81
+        },
+        {
+          "age_group": "25-44",
+          "count": 41
+        },
+        {
+          "age_group": "45-64",
+          "count": 6
+        },
+        {
+          "age_group": "65+",
+          "count": 2
+        }
+      ]
+    },
+    "Dengue": {
+      "total": 976,
+      "weekly_by_hospital": [
+        {
+          "week": "2025-12-29",
+          "hospital": "BU",
+          "count": 5
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "HG",
+          "count": 11
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 11
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "HG",
+          "count": 9
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BU",
+          "count": 17
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "HG",
+          "count": 16
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "SL",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BO",
+          "count": 4
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BU",
+          "count": 37
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "HG",
+          "count": 24
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BA",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BO",
+          "count": 3
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BU",
+          "count": 55
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "HG",
+          "count": 33
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BA",
+          "count": 3
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BO",
+          "count": 4
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BU",
+          "count": 89
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "GH",
+          "count": 13
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "HG",
+          "count": 34
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BA",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BU",
+          "count": 46
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "GH",
+          "count": 13
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "HG",
+          "count": 33
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "MC",
+          "count": 3
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BA",
+          "count": 4
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BO",
+          "count": 4
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BU",
+          "count": 55
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "GH",
+          "count": 9
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "HG",
+          "count": 71
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BU",
+          "count": 27
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "GH",
+          "count": 11
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "HG",
+          "count": 43
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BU",
+          "count": 11
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "HG",
+          "count": 27
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "MC",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BA",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BU",
+          "count": 13
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "EG",
+          "count": 12
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "HG",
+          "count": 10
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BU",
+          "count": 9
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "EG",
+          "count": 11
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BU",
+          "count": 17
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "EG",
+          "count": 7
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "HG",
+          "count": 6
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BU",
+          "count": 18
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "EG",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "HG",
+          "count": 9
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "SL",
+          "count": 4
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BU",
+          "count": 11
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "EG",
+          "count": 11
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "HG",
+          "count": 8
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BU",
+          "count": 7
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "EG",
+          "count": 9
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "HG",
+          "count": 2
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BE",
+          "count": 5
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BO",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 112
+        },
+        {
+          "month": "2026-01",
+          "hospital": "EG",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "GH",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 85
+        },
+        {
+          "month": "2026-01",
+          "hospital": "MC",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "SL",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BA",
+          "count": 9
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BE",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BO",
+          "count": 10
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 229
+        },
+        {
+          "month": "2026-02",
+          "hospital": "EG",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 46
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 179
+        },
+        {
+          "month": "2026-02",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BA",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BE",
+          "count": 4
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BO",
+          "count": 8
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BU",
+          "count": 57
+        },
+        {
+          "month": "2026-03",
+          "hospital": "EG",
+          "count": 33
+        },
+        {
+          "month": "2026-03",
+          "hospital": "GH",
+          "count": 5
+        },
+        {
+          "month": "2026-03",
+          "hospital": "HG",
+          "count": 58
+        },
+        {
+          "month": "2026-03",
+          "hospital": "MC",
+          "count": 8
+        },
+        {
+          "month": "2026-03",
+          "hospital": "SL",
+          "count": 4
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 30
+        },
+        {
+          "month": "2026-04",
+          "hospital": "EG",
+          "count": 24
+        },
+        {
+          "month": "2026-04",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "hospital": "HG",
+          "count": 17
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 231
+        },
+        {
+          "month": "2026-02",
+          "count": 491
+        },
+        {
+          "month": "2026-03",
+          "count": 178
+        },
+        {
+          "month": "2026-04",
+          "count": 76
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BA",
+          "count": 10
+        },
+        {
+          "hospital": "BE",
+          "count": 15
+        },
+        {
+          "hospital": "BO",
+          "count": 27
+        },
+        {
+          "hospital": "BU",
+          "count": 428
+        },
+        {
+          "hospital": "EG",
+          "count": 70
+        },
+        {
+          "hospital": "GH",
+          "count": 61
+        },
+        {
+          "hospital": "HG",
+          "count": 339
+        },
+        {
+          "hospital": "MC",
+          "count": 21
+        },
+        {
+          "hospital": "SL",
+          "count": 5
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 511
+        },
+        {
+          "gender": "M",
+          "count": 465
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 152
+        },
+        {
+          "age_group": "5-14",
+          "count": 101
+        },
+        {
+          "age_group": "15-24",
+          "count": 240
+        },
+        {
+          "age_group": "25-44",
+          "count": 245
+        },
+        {
+          "age_group": "45-64",
+          "count": 147
+        },
+        {
+          "age_group": "65+",
+          "count": 91
+        }
+      ]
+    },
+    "Malaria": {
+      "total": 305,
+      "weekly_by_hospital": [
+        {
+          "week": "2025-12-29",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BE",
+          "count": 4
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BE",
+          "count": 7
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BO",
+          "count": 7
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BO",
+          "count": 14
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BE",
+          "count": 11
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BO",
+          "count": 35
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "HG",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BE",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BO",
+          "count": 24
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "GH",
+          "count": 5
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BO",
+          "count": 23
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BE",
+          "count": 6
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BO",
+          "count": 13
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BO",
+          "count": 4
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "GH",
+          "count": 4
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BO",
+          "count": 8
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BO",
+          "count": 3
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BO",
+          "count": 6
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BO",
+          "count": 5
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BE",
+          "count": 7
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BO",
+          "count": 10
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BE",
+          "count": 7
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BO",
+          "count": 9
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "HG",
+          "count": 1
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BE",
+          "count": 19
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BO",
+          "count": 54
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 4
+        },
+        {
+          "month": "2026-01",
+          "hospital": "EG",
+          "count": 4
+        },
+        {
+          "month": "2026-01",
+          "hospital": "GH",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 13
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BE",
+          "count": 18
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BO",
+          "count": 68
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 12
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 7
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BE",
+          "count": 10
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BO",
+          "count": 19
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "hospital": "EG",
+          "count": 8
+        },
+        {
+          "month": "2026-03",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "hospital": "HG",
+          "count": 7
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BE",
+          "count": 17
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BO",
+          "count": 22
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "HG",
+          "count": 2
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 101
+        },
+        {
+          "month": "2026-02",
+          "count": 109
+        },
+        {
+          "month": "2026-03",
+          "count": 50
+        },
+        {
+          "month": "2026-04",
+          "count": 45
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BE",
+          "count": 64
+        },
+        {
+          "hospital": "BO",
+          "count": 163
+        },
+        {
+          "hospital": "BU",
+          "count": 9
+        },
+        {
+          "hospital": "EG",
+          "count": 16
+        },
+        {
+          "hospital": "GH",
+          "count": 24
+        },
+        {
+          "hospital": "HG",
+          "count": 29
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 107
+        },
+        {
+          "gender": "M",
+          "count": 198
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 13
+        },
+        {
+          "age_group": "5-14",
+          "count": 46
+        },
+        {
+          "age_group": "15-24",
+          "count": 85
+        },
+        {
+          "age_group": "25-44",
+          "count": 98
+        },
+        {
+          "age_group": "45-64",
+          "count": 49
+        },
+        {
+          "age_group": "65+",
+          "count": 14
+        }
+      ]
+    },
+    "Cholera": {
+      "total": 49,
+      "weekly_by_hospital": [
+        {
+          "week": "2025-12-29",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "HG",
+          "count": 5
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "GH",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "HG",
+          "count": 2
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 10
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 10
+        },
+        {
+          "month": "2026-03",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-03",
+          "hospital": "HG",
+          "count": 9
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "GH",
+          "count": 4
+        },
+        {
+          "month": "2026-04",
+          "hospital": "HG",
+          "count": 4
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 12
+        },
+        {
+          "month": "2026-02",
+          "count": 13
+        },
+        {
+          "month": "2026-03",
+          "count": 11
+        },
+        {
+          "month": "2026-04",
+          "count": 13
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "hospital": "BU",
+          "count": 5
+        },
+        {
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "hospital": "GH",
+          "count": 8
+        },
+        {
+          "hospital": "HG",
+          "count": 33
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 23
+        },
+        {
+          "gender": "M",
+          "count": 26
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 1
+        },
+        {
+          "age_group": "5-14",
+          "count": 2
+        },
+        {
+          "age_group": "15-24",
+          "count": 12
+        },
+        {
+          "age_group": "25-44",
+          "count": 14
+        },
+        {
+          "age_group": "45-64",
+          "count": 8
+        },
+        {
+          "age_group": "65+",
+          "count": 12
+        }
+      ]
+    },
+    "AWD": {
+      "total": 165,
+      "weekly_by_hospital": [
+        {
+          "week": "2025-12-29",
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "MC",
+          "count": 5
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "MC",
+          "count": 7
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "MC",
+          "count": 13
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "MC",
+          "count": 8
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "SL",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "MC",
+          "count": 5
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "MC",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "MC",
+          "count": 8
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "MC",
+          "count": 6
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "MC",
+          "count": 5
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "MC",
+          "count": 27
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "GH",
+          "count": 4
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "MC",
+          "count": 4
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "MC",
+          "count": 14
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "MC",
+          "count": 5
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "hospital": "EG",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "month": "2026-01",
+          "hospital": "MC",
+          "count": 39
+        },
+        {
+          "month": "2026-01",
+          "hospital": "SL",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "MC",
+          "count": 21
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "hospital": "MC",
+          "count": 46
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "GH",
+          "count": 5
+        },
+        {
+          "month": "2026-04",
+          "hospital": "MC",
+          "count": 21
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 54
+        },
+        {
+          "month": "2026-02",
+          "count": 26
+        },
+        {
+          "month": "2026-03",
+          "count": 54
+        },
+        {
+          "month": "2026-04",
+          "count": 31
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "hospital": "BU",
+          "count": 7
+        },
+        {
+          "hospital": "EG",
+          "count": 10
+        },
+        {
+          "hospital": "GH",
+          "count": 13
+        },
+        {
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "hospital": "MC",
+          "count": 127
+        },
+        {
+          "hospital": "SL",
+          "count": 1
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 62
+        },
+        {
+          "gender": "M",
+          "count": 103
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 128
+        },
+        {
+          "age_group": "5-14",
+          "count": 23
+        },
+        {
+          "age_group": "15-24",
+          "count": 2
+        },
+        {
+          "age_group": "25-44",
+          "count": 4
+        },
+        {
+          "age_group": "45-64",
+          "count": 4
+        },
+        {
+          "age_group": "65+",
+          "count": 4
+        }
+      ]
+    },
+    "TB": {
+      "total": 65,
+      "weekly_by_hospital": [
+        {
+          "week": "2025-12-29",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "week": "2025-12-29",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-02",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-03-09",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-03-16",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BU",
+          "count": 2
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "MC",
+          "count": 1
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 7
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BU",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 5
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BE",
+          "count": 8
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BU",
+          "count": 7
+        },
+        {
+          "month": "2026-03",
+          "hospital": "EG",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "hospital": "HG",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BE",
+          "count": 6
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BU",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "hospital": "EG",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "month": "2026-04",
+          "hospital": "MC",
+          "count": 1
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 15
+        },
+        {
+          "month": "2026-02",
+          "count": 17
+        },
+        {
+          "month": "2026-03",
+          "count": 19
+        },
+        {
+          "month": "2026-04",
+          "count": 14
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BE",
+          "count": 18
+        },
+        {
+          "hospital": "BO",
+          "count": 2
+        },
+        {
+          "hospital": "BU",
+          "count": 23
+        },
+        {
+          "hospital": "EG",
+          "count": 3
+        },
+        {
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "hospital": "HG",
+          "count": 17
+        },
+        {
+          "hospital": "MC",
+          "count": 1
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 20
+        },
+        {
+          "gender": "M",
+          "count": 45
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 2
+        },
+        {
+          "age_group": "5-14",
+          "count": 3
+        },
+        {
+          "age_group": "15-24",
+          "count": 9
+        },
+        {
+          "age_group": "25-44",
+          "count": 21
+        },
+        {
+          "age_group": "45-64",
+          "count": 21
+        },
+        {
+          "age_group": "65+",
+          "count": 9
+        }
+      ]
+    }
+  }
+}

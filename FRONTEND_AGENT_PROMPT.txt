@@ -1,0 +1,26 @@
+Please make one focused frontend change: load dashboard data from JSON instead of hardcoded values.
+
+Current problem:
+The dashboard currently has case counts hardcoded in JavaScript. We now have a generated data file:
+- data/dashboard_data.json
+
+Task:
+1. Remove or bypass the hardcoded RAW object.
+2. Fetch `data/dashboard_data.json` on page load.
+3. Set the existing app data variable so the current render functions can use:
+   `RAW = dashboardData.diseases`
+4. If current render functions expect hospital field as `Hospital Name`, add a small adapter that converts:
+   - `hospital` -> `Hospital Name`
+   without changing the generated JSON.
+5. Use `monthly_by_hospital` for hospital-filtered monthly charts when selectedHospital is not null.
+6. Keep all current UI, styling, chart types, and layout unchanged.
+7. Do not manually edit disease counts.
+8. Do not refactor unrelated code.
+
+Testing:
+- Start a local server with `python3 -m http.server 8000`.
+- Open `http://localhost:8000`.
+- Confirm disease buttons render.
+- Confirm total cases match dashboard_data.json.
+- Confirm hospital filter changes weekly and monthly charts.
+- Confirm no hardcoded disease case counts remain in script.js.

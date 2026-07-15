@@ -1,0 +1,70 @@
+{
+  "schema_version": "0.1",
+  "notes": "Initial provisional ICD-10/keyword definitions for HIS Excel export. Please review with clinical/public-health team before official reporting.",
+  "diseases": {
+    "Measles": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "B05"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 B05* measles."
+    },
+    "Dengue": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A90",
+        "A91"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A90* dengue fever and A91* dengue haemorrhagic fever."
+    },
+    "Malaria": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "B50",
+        "B51",
+        "B52",
+        "B53",
+        "B54"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 B50-B54 malaria."
+    },
+    "Cholera": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A00"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A00* cholera."
+    },
+    "AWD": {
+      "match_mode": "icd_and_keyword",
+      "icd10_prefixes": [
+        "A09"
+      ],
+      "keywords_any": [
+        "acute watery",
+        "watery diarrhea",
+        "watery diarrhoea",
+        "watery stool",
+        "loose stool",
+        "loose motion"
+      ],
+      "notes": "Provisional acute watery diarrhoea definition: A09* plus watery/loose stool terms in clinical text. This must be reviewed because A09 alone captures a much broader gastroenteritis group."
+    },
+    "TB": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19"
+      ],
+      "keywords_any": [],
+      "notes": "Strict active tuberculosis definition using ICD-10 A15-A19. Previous prototype numbers may have included sequelae or TB-associated codes; review if you need to match legacy totals."
+    }
+  }
+}

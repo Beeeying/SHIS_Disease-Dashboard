@@ -1,4 +1,5 @@
 * { box-sizing: border-box; margin: 0; padding: 0 }
+html { scroll-behavior: smooth; }
 body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; min-height: 100vh; padding: 24px 28px; transition: background .3s ease }
 .page-header{
     display:flex;
@@ -144,6 +145,13 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
 .chart-box { background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.08); border-radius: 18px; padding: 18px; margin-top: 0; margin-bottom: 0 }
 .chart-box.full { grid-column: 1/-1 }
 .chart-box.hidden { display: none }
+.chart-scroll-shell { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; cursor: grab; }
+.chart-scroll-shell.is-dragging { cursor: grabbing; }
+.chart-scroll-shell::-webkit-scrollbar { height: 10px; }
+.chart-scroll-shell::-webkit-scrollbar-track { background: rgba(0,0,0,.04); border-radius: 999px; }
+.chart-scroll-shell::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 999px; }
+.chart-scroll-track { min-width: 100%; }
+.chart-scroll-track canvas { display: block; }
 .chart-title { font-size: 11px; font-weight: 700; color: #5f5f5f; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .6px }
 .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555 }

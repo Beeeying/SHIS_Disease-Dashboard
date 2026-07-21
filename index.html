@@ -42,19 +42,15 @@
 <div class="chart-grid">
   <div class="chart-box full" id="weeklyChartBox">
     <div class="chart-title">Total case</div>
-    <div style="position:relative;height:280px;margin-left:-8px"><canvas id="chartWeekly"></canvas></div>
+    <div class="chart-scroll-shell" id="weeklyScrollShell">
+      <div class="chart-scroll-track" id="weeklyScrollTrack" style="position:relative;height:280px;margin-left:-8px">
+        <canvas id="chartWeekly"></canvas>
+      </div>
+    </div>
   </div>
   <div class="chart-box full hidden" id="monthlyChartBox">
     <div class="chart-title">Total case</div>
     <div style="position:relative;height:140px"><canvas id="chartMonthly"></canvas></div>
-  </div>
-  <div class="chart-box full" id="hospitalTrendBox">
-    <div class="chart-header">
-      <div class="chart-title">Hospital case trend</div>
-      <div class="pills" id="filterRow"></div>
-    </div>
-    <div id="legendWeekly" class="legend"></div>
-    <div style="position:relative;height:300px;margin-left:-8px"><canvas id="chartHosp"></canvas></div>
   </div>
   <div class="chart-box" id="regionChartBox">
     <div class="chart-title">Regional case intensity</div>
@@ -63,8 +59,17 @@
   </div>
   <div class="chart-box" id="ageChartBox">
     <div class="chart-title">Age group distribution</div>
-    <div style="position:relative;height:210px"><canvas id="chartAge"></canvas></div>
+    <div class="age-chart-shell"><canvas id="chartAge"></canvas></div>
   </div>
+</div>
+
+<div class="chart-box full" id="hospitalTrendBox">
+  <div class="chart-header">
+    <div class="chart-title">Hospital case trend</div>
+    <div class="pills" id="filterRow"></div>
+  </div>
+  <div id="legendWeekly" class="legend"></div>
+  <div style="position:relative;height:300px;margin-left:-8px"><canvas id="chartHosp"></canvas></div>
 </div>
 
 <p class="note">Source: All_Hospitals_Data_for_last_Three_month.xlsx</p>

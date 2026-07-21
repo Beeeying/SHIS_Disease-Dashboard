@@ -21,6 +21,14 @@ let GEOJSON_FEATURES = [];
 let GEOJSON_REGION_PROPERTY = 'NAM_1';
 let weeklyWindowStart = 0;
 
+const REGION_LABEL_OFFSETS = {
+  Awdal: { x: 0, y: 0 },
+  'Woqooyi Galbeed': { x: 0, y: -2 },
+  Sool: { x: 0, y: 2 },
+  Togdheer: { x: 0, y: 0 },
+  Sanaag: { x: 0, y: 2 }
+};
+
 function getCategoryBoundaries(scale, chartArea, pointCount) {
   if (!scale || !chartArea || !pointCount) return [];
 
@@ -774,10 +782,22 @@ function renderRegionalMap() {
     .filter((name, index, arr) => arr.indexOf(name) === index);
   const maxCases = Math.max(...regions.map(region => caseMap[region] || 0), 1);
   const color = DISEASE_COLORS[currentDisease] || '#378ADD';
+  const noCasesFill = '#E6E8EC';
+  const lowThreshold = maxCases / 3;
+  const mediumThreshold = (maxCases * 2) / 3;
+
+  // Low / Medium / High are relative to the maximum regional case count for the current disease and period.
+  const getIntensityCategory = (count) => {
+    if (count === 0) return 'No cases';
+    if (count <= lowThreshold) return 'Low';
+    if (count <= mediumThreshold) return 'Medium';
+    return 'High';
+  };
 
   legend.innerHTML = [
-    '<span class="legend-item"><span class="legend-swatch" style="background: #f7f7f7"></span>Low</span>',
-    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.45) + '"></span>Medium</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background: ' + noCasesFill + '"></span>No cases</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.30) + '"></span>Low</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.55) + '"></span>Medium</span>',
     '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.85) + '"></span>High</span>'
   ].join('');
 
@@ -811,6 +831,34 @@ function renderRegionalMap() {
     y: height - margin - ((lat - minLat) / (maxLat - minLat || 1)) * (height - margin * 2)
   });
 
+  const getFeatureLabelPoint = (geometry) => {
+    const points = [];
+    const walk = (coords) => {
+      if (!coords || !coords.length) return;
+      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+        points.push(...coords);
+      } else {
+        coords.forEach(walk);
+      }
+    };
+
+    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
+
+    if (!points.length) return null;
+
+    const projectedPoints = points.map(point => projectPoint(point));
+    const minX = Math.min(...projectedPoints.map(point => point.x));
+    const maxX = Math.max(...projectedPoints.map(point => point.x));
+    const minY = Math.min(...projectedPoints.map(point => point.y));
+    const maxY = Math.max(...projectedPoints.map(point => point.y));
+
+    return {
+      x: (minX + maxX) / 2,
+      y: (minY + maxY) / 2
+    };
+  };
+
   const toPath = (rings) => rings.map(ring => {
     const points = ring.map(point => {
       const projected = projectPoint(point);
@@ -834,8 +882,14 @@ function renderRegionalMap() {
     const regionName = feature.properties?.[GEOJSON_REGION_PROPERTY];
     const geometry = feature.geometry;
     const count = caseMap[regionName] || 0;
-    const alpha = 0.15 + (count / maxCases) * 0.7;
-    const fill = hexToRgba(color, alpha);
+    const category = getIntensityCategory(count);
+    const fill = category === 'No cases'
+      ? noCasesFill
+      : category === 'Low'
+        ? hexToRgba(color, 0.30)
+        : category === 'Medium'
+          ? hexToRgba(color, 0.55)
+          : hexToRgba(color, 0.85);
 
     const createPath = (coords) => {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -850,9 +904,13 @@ function renderRegionalMap() {
     if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(createPath);
 
     if (regionName) {
-      const centroid = geometry?.type === 'MultiPolygon' ? geometry.coordinates[0][0][0] : geometry?.coordinates?.[0]?.[0];
-      if (centroid) {
-        const point = projectPoint(centroid);
+      const labelPoint = getFeatureLabelPoint(geometry);
+      if (labelPoint) {
+        const offset = REGION_LABEL_OFFSETS[regionName] || { x: 0, y: 0 };
+        const point = {
+          x: labelPoint.x + offset.x,
+          y: labelPoint.y + offset.y
+        };
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', String(point.x));
         text.setAttribute('y', String(point.y));

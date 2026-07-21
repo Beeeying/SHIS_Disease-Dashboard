@@ -18,7 +18,12 @@ let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
+
 const WEEKLY_VIEWPORT_WEEKS = 15;
+=======
+let GEOJSON_REGION_PROPERTY = 'NAM_1';
+let weeklyWindowStart = 0;
+ 0c5d2a0b92a239a5664ec41e2d3f66c1c4cb994b
 
 function getCategoryBoundaries(scale, chartArea, pointCount) {
   if (!scale || !chartArea || !pointCount) return [];
@@ -195,6 +200,20 @@ function adaptDashboardJson(json) {
         "Hospital Name": r.hospital,
         count: Number(r.count ?? r.cases ?? 0)
       })),
+      by_region: (entry.by_region || []).map(r => ({
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      weekly_by_region: (entry.weekly_by_region || []).map(r => ({
+        week: r.week,
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly_by_region: (entry.monthly_by_region || []).map(r => ({
+        month: r.month,
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
       by_gender: (entry.by_gender || []).map(r => ({
         Gender: r.gender,
         count: Number(r.count ?? r.cases ?? 0)
@@ -251,6 +270,10 @@ Promise.all([
       (dashboardJson.metadata && dashboardJson.metadata.hospital_regions) ||
       REGION_BY_HOSPITAL ||
       {};
+
+    GEOJSON_REGION_PROPERTY =
+      (dashboardJson.metadata && dashboardJson.metadata.geojson_region_property) ||
+      GEOJSON_REGION_PROPERTY;
 
     GEOJSON_FEATURES = geojson.features || [];
 
@@ -349,14 +372,17 @@ function getLatestWeek() {
   return GLOBAL_WEEKS[GLOBAL_WEEKS.length - 1] || '';
 }
 
-function getRegionalCaseMap(week) {
-  const d = RAW[currentDisease];
-  const rows = d.weekly_by_hospital.filter(r => r.week === week);
+function getRegionalCaseMap(period, mode = activeView) {
+  const d = RAW[currentDisease] || {};
+  const rows = mode === 'monthly'
+    ? (d.monthly_by_region || []).filter(r => r.month === period)
+    : (d.weekly_by_region || []).filter(r => r.week === period);
+
   const cases = {};
   rows.forEach(r => {
-    const region = REGION_BY_HOSPITAL[r['Hospital Name']];
+    const region = r.region;
     if (!region) return;
-    cases[region] = (cases[region] || 0) + r.count;
+    cases[region] = (cases[region] || 0) + Number(r.count || 0);
   });
   return cases;
 }
@@ -721,18 +747,28 @@ function hexToRgba(hex, alpha) {
 function renderRegionalMap() {
   const container = document.getElementById('regionMap');
   const legend = document.getElementById('regionMapLegend');
+  const caption = document.getElementById('regionMapCaption');
   if (!container || !legend) return;
 
   if (!GEOJSON_FEATURES.length) {
     container.innerHTML = '<div class="zero-msg">No regional data available</div>';
     legend.innerHTML = '';
+    if (caption) caption.textContent = '';
     return;
   }
 
-  const week = getLatestWeek();
-  const caseMap = getRegionalCaseMap(week);
+  const isMonthly = activeView === 'monthly';
+  const diseaseData = RAW[currentDisease] || {};
+  const regionSeries = isMonthly ? (diseaseData.monthly_by_region || []) : (diseaseData.weekly_by_region || []);
+  const periodKey = isMonthly ? 'month' : 'week';
+  const fallbackPeriods = isMonthly ? GLOBAL_MONTHS : GLOBAL_WEEKS;
+  const latestPeriod = regionSeries.length
+    ? [...regionSeries].map(item => item[periodKey]).filter(Boolean).sort().pop() || fallbackPeriods[fallbackPeriods.length - 1] || ''
+    : fallbackPeriods[fallbackPeriods.length - 1] || '';
+
+  const caseMap = getRegionalCaseMap(latestPeriod, activeView);
   const regions = GEOJSON_FEATURES
-    .map(feature => feature.properties?.NAM_1)
+    .map(feature => feature.properties?.[GEOJSON_REGION_PROPERTY])
     .filter(Boolean)
     .filter((name, index, arr) => arr.indexOf(name) === index);
   const maxCases = Math.max(...regions.map(region => caseMap[region] || 0), 1);
@@ -794,7 +830,7 @@ function renderRegionalMap() {
   svg.appendChild(background);
 
   GEOJSON_FEATURES.forEach(feature => {
-    const regionName = feature.properties?.NAM_1;
+    const regionName = feature.properties?.[GEOJSON_REGION_PROPERTY];
     const geometry = feature.geometry;
     const count = caseMap[regionName] || 0;
     const alpha = 0.15 + (count / maxCases) * 0.7;
@@ -834,6 +870,19 @@ function renderRegionalMap() {
   caption.className = 'map-caption';
   caption.textContent = `Latest week: ${week || '—'} · ${currentDisease}`;
   container.appendChild(caption);
+=======
+  if (!caption) {
+    const captionEl = document.createElement('div');
+    captionEl.id = 'regionMapCaption';
+    captionEl.className = 'card-sub map-caption';
+    container.parentElement?.appendChild(captionEl);
+  }
+
+  const captionEl = document.getElementById('regionMapCaption');
+  if (captionEl) {
+    captionEl.textContent = `${isMonthly ? 'Latest month' : 'Latest week'}: ${latestPeriod || '—'} · ${currentDisease}`;
+  }
+ 0c5d2a0b92a239a5664ec41e2d3f66c1c4cb994b
 }
 
 function renderAll() {

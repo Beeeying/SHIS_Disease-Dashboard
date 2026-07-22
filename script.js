@@ -1,0 +1,999 @@
+const DISEASE_COLORS = {
+  Measles:'#378ADD', Dengue:'#D85A30', Malaria:'#1D9E75',
+  Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD'
+};
+const DISEASE_BG = {
+  Measles:'#F9F1F0', Dengue:'#F4E8DB', Malaria:'#F4F0E1',
+  Cholera:'#E9F1EE', AWD:'#EAF5FF', TB:'#EEE9F2'
+};
+const HOSP_COLORS = {
+  BU:'#378ADD',HG:'#D85A30',EG:'#1D9E75',GH:'#D4537E',
+  MC:'#BA7517',BO:'#7F77DD',BE:'#639922',BA:'#888780',SL:'#533AB7'
+};
+
+let currentDisease = 'Measles', selectedHospital = null, charts = {};
+let RAW = {}; // 原本寫死的資料，現在從 JSON 動態載入
+let GLOBAL_WEEKS = [];
+let GLOBAL_MONTHS = [];
+let activeView = 'weekly';
+let REGION_BY_HOSPITAL = {};
+let GEOJSON_FEATURES = [];
+
+const WEEKLY_VIEWPORT_WEEKS = 15;
+let GEOJSON_REGION_PROPERTY = 'NAM_1';
+let weeklyWindowStart = 0;
+
+const REGION_LABEL_OFFSETS = {
+  Awdal: { x: 0, y: 0 },
+  'Woqooyi Galbeed': { x: 0, y: -2 },
+  Sool: { x: 0, y: 2 },
+  Togdheer: { x: 0, y: 0 },
+  Sanaag: { x: 0, y: 2 }
+};
+
+function getCategoryBoundaries(scale, chartArea, pointCount) {
+  if (!scale || !chartArea || !pointCount) return [];
+
+  const centers = Array.from({ length: pointCount }, (_, index) => scale.getPixelForValue(index));
+  if (!centers.length) return [];
+
+  const boundaries = [chartArea.left];
+  for (let index = 1; index < centers.length; index++) {
+    boundaries.push((centers[index - 1] + centers[index]) / 2);
+  }
+  boundaries.push(chartArea.right);
+
+  return boundaries;
+}
+
+const weeklyPeakHighlightPlugin = {
+  id: 'weeklyPeakHighlight',
+  beforeDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
+    const peakIndex = settings.peakIndex;
+    if (peakIndex === undefined || peakIndex === null) return;
+
+    const { ctx, chartArea, scales } = chart;
+    if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
+
+    const xScale = scales.x;
+    const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+    const left = boundaries[peakIndex] ?? xScale.left;
+    const right = boundaries[peakIndex + 1] ?? xScale.right;
+    if (right <= left) return;
+
+    ctx.save();
+    ctx.fillStyle = '#F5DCDA';
+    ctx.globalAlpha = 0.95;
+    ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+    ctx.restore();
+  },
+  afterDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyPeakHighlight || {};
+    const peakIndex = settings.peakIndex;
+    if (peakIndex === undefined || peakIndex === null) return;
+
+    const { ctx, chartArea, scales } = chart;
+    if (!ctx || !chartArea || !scales?.x || !scales?.y) return;
+
+    const xScale = scales.x;
+    const boundaries = getCategoryBoundaries(xScale, chartArea, chart.data.labels.length);
+    const left = boundaries[peakIndex] ?? xScale.left;
+    const right = boundaries[peakIndex + 1] ?? xScale.right;
+    if (right <= left) return;
+
+    const label = settings.label || 'Peak Week';
+    if (!label) return;
+
+    const centerX = left + (right - left) / 2;
+    const textY = Math.max(14, chartArea.top - 14);
+
+    ctx.save();
+    ctx.font = 'bold 12px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000000';
+    ctx.fillText(label, centerX, textY);
+    ctx.restore();
+  }
+};
+
+const barValueLabelsPlugin = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    if (!ctx) return;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta?.data?.length) return;
+
+    ctx.save();
+    ctx.font = '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#111';
+
+    meta.data.forEach((bar, index) => {
+      if (!bar || typeof bar.x !== 'number' || typeof bar.y !== 'number') return;
+      const value = chart.data.datasets[0].data[index];
+      if (value === undefined || value === null || value <= 0) return;
+
+      const barHeight = Math.abs(bar.base - bar.y);
+      const drawInside = barHeight >= 26;
+      const labelY = drawInside ? bar.y + barHeight / 2 : Math.max(chart.chartArea.top + 8, bar.y - 10);
+      ctx.fillStyle = drawInside ? '#FFFFFF' : '#111111';
+      ctx.fillText(value.toLocaleString(), bar.x, labelY);
+    });
+
+    ctx.restore();
+  }
+};
+
+const weeklyIntervalGridPlugin = {
+  id: 'weeklyIntervalGrid',
+  beforeDatasetsDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    if (!boundaries.length) return;
+
+    ctx.save();
+    ctx.strokeStyle = settings.lineColor || 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = settings.lineWidth || 1;
+
+    boundaries.forEach((x) => {
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  },
+  afterDraw(chart) {
+    const settings = chart.options?.plugins?.weeklyIntervalGrid || {};
+    const { ctx, chartArea, scales } = chart;
+    if (!settings.enabled || !ctx || !chartArea || !scales?.x) return;
+
+    const boundaries = getCategoryBoundaries(scales.x, chartArea, chart.data.labels.length);
+    const labels = settings.labels || [];
+    if (!boundaries.length || !labels.length) return;
+
+    ctx.save();
+    ctx.font = settings.font || '10px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = settings.color || '#444444';
+
+    labels.forEach((label, index) => {
+      const x = boundaries[index];
+      if (x === undefined) return;
+      ctx.fillText(label, x, chartArea.bottom + 10);
+    });
+
+    ctx.restore();
+  }
+};
+
+if (window.ChartAnnotation) {
+  Chart.register(ChartAnnotation);
+}
+
+function showLoadError(message) {
+  let banner = document.getElementById('loadErrorBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'loadErrorBanner';
+    banner.setAttribute('role', 'alert');
+    banner.style.margin = '0 0 14px';
+    banner.style.padding = '10px 12px';
+    banner.style.border = '1px solid rgba(198, 40, 40, 0.35)';
+    banner.style.background = 'rgba(198, 40, 40, 0.08)';
+    banner.style.color = '#7f1d1d';
+    banner.style.borderRadius = '10px';
+    banner.style.fontSize = '12px';
+
+    const header = document.querySelector('.page-header');
+    if (header && header.parentNode) {
+      header.parentNode.insertBefore(banner, header.nextSibling);
+    } else {
+      document.body.prepend(banner);
+    }
+  }
+
+  banner.textContent = message;
+}
+
+
+function adaptDashboardJson(json) {
+  const diseases = json && json.diseases ? json.diseases : {};
+  const adapted = {};
+
+  Object.entries(diseases).forEach(([disease, entry]) => {
+    adapted[disease] = {
+      total: Number(entry.total || 0),
+      weekly_by_hospital: (entry.weekly_by_hospital || []).map(r => ({
+        week: r.week,
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly_by_hospital: (entry.monthly_by_hospital || []).map(r => ({
+        month: r.month,
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly: (entry.monthly || []).map(r => ({
+        month: r.month,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_hospital: (entry.by_hospital || []).map(r => ({
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_region: (entry.by_region || []).map(r => ({
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      weekly_by_region: (entry.weekly_by_region || []).map(r => ({
+        week: r.week,
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      monthly_by_region: (entry.monthly_by_region || []).map(r => ({
+        month: r.month,
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_gender: (entry.by_gender || []).map(r => ({
+        Gender: r.gender,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      by_age: (entry.by_age || []).map(r => ({
+        age_group: r.age_group || r.age || '',
+        count: Number(r.count ?? r.cases ?? 0)
+      }))
+    };
+  });
+
+  return adapted;
+}
+
+function rebuildGlobalPeriodsFromRaw(rawData) {
+  const weeks = new Set();
+  const months = new Set();
+
+  Object.values(rawData || {}).forEach(d => {
+    (d.weekly_by_hospital || []).forEach(r => {
+      if (r.week) weeks.add(r.week);
+    });
+    (d.monthly || []).forEach(r => {
+      if (r.month) months.add(r.month);
+    });
+  });
+
+  GLOBAL_WEEKS = [...weeks].sort();
+  GLOBAL_MONTHS = [...months].sort();
+}
+
+// 載入與解析 JSON 與 GeoJSON
+Promise.all([
+  fetch('data/dashboard_data.json').then(res => {
+    if (!res.ok) {
+      throw new Error(`Failed to load dashboard data: ${res.status}`);
+    }
+    return res.json();
+  }),
+  fetch('regions.geojson').then(res => {
+    if (!res.ok) {
+      throw new Error(`Failed to load regions geojson: ${res.status}`);
+    }
+    return res.json();
+  })
+])
+  .then(([dashboardJson, geojson]) => {
+    RAW = adaptDashboardJson(dashboardJson);
+    rebuildGlobalPeriodsFromRaw(RAW);
+
+    // Optional future support if hospital-region mapping is added to dashboard_data.json
+    REGION_BY_HOSPITAL =
+      dashboardJson.hospital_regions ||
+      (dashboardJson.metadata && dashboardJson.metadata.hospital_regions) ||
+      REGION_BY_HOSPITAL ||
+      {};
+
+    GEOJSON_REGION_PROPERTY =
+      (dashboardJson.metadata && dashboardJson.metadata.geojson_region_property) ||
+      GEOJSON_REGION_PROPERTY;
+
+    GEOJSON_FEATURES = geojson.features || [];
+
+    if (!RAW[currentDisease]) {
+      currentDisease = Object.keys(RAW)[0] || currentDisease;
+    }
+
+    buildDiseaseButtons();
+    setupViewSwitch();
+    setDisease(currentDisease);
+  })
+  .catch(err => {
+    console.error('Error loading dashboard data:', err);
+    const blockedByFileOrigin = window.location.protocol === 'file:';
+    const hint = blockedByFileOrigin
+      ? 'You are opening this page as a local file. Start a local web server (for example, VS Code Live Server) and open the served URL.'
+      : 'Check the browser console and confirm data/dashboard_data.json and regions.geojson are reachable.';
+    showLoadError(`Dashboard failed to load data. ${hint}`);
+  });
+
+function parseCSV(text) {
+  const data = {};
+  const weekSet = new Set();
+  const monthSet = new Set();
+  const lines = text.trim().split('\n');
+  
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const [type, disease, key1, key2, countStr] = lines[i].split(',');
+    const count = parseInt(countStr, 10);
+
+    if (type === 'HospitalRegion') {
+      REGION_BY_HOSPITAL[key1] = key2;
+      continue;
+    }
+
+    if (!data[disease]) {
+      data[disease] = { total: 0, weekly_by_hospital: [], monthly: [], by_hospital: [], by_gender: [], by_age: [] };
+    }
+
+    if (type === 'Total') data[disease].total = count;
+    else if (type === 'Weekly') {
+      data[disease].weekly_by_hospital.push({ week: key1, "Hospital Name": key2, count: count });
+      weekSet.add(key1);
+    }
+    else if (type === 'Monthly') {
+      data[disease].monthly.push({ month: key1, count: count });
+      monthSet.add(key1);
+    }
+    else if (type === 'Hospital') data[disease].by_hospital.push({ "Hospital Name": key1, count: count });
+    else if (type === 'Gender') data[disease].by_gender.push({ Gender: key1, count: count });
+    else if (type === 'Age') data[disease].by_age.push({ age_group: key1, count: count });
+  }
+
+  GLOBAL_WEEKS = [...weekSet].sort();
+  GLOBAL_MONTHS = [...monthSet].sort();
+  return data;
+}
+
+function getDiseaseTrend(disease) {
+  const months = RAW[disease].monthly.slice().sort((a,b)=>a.month.localeCompare(b.month));
+  if (months.length < 2) return 'flat';
+  const last = months[months.length - 1].count;
+  const prev = months[months.length - 2].count;
+  if (last > prev) return 'up';
+  if (last < prev) return 'down';
+  return 'flat';
+}
+
+function buildDiseaseButtons() {
+  const row = document.getElementById('diseaseRow');
+  row.innerHTML = '';
+  Object.keys(RAW).forEach(d => {
+    const b = document.createElement('button');
+    b.className = 'd-btn' + (d === currentDisease ? ' active' : '');
+    b.dataset.disease = d;
+    const trend = getDiseaseTrend(d);
+    b.dataset.trend = trend;
+    const icon = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '▬';
+    b.innerHTML = `${d} <span class="trend-icon">${icon}</span>`;
+    b.onclick = () => setDisease(d);
+    row.appendChild(b);
+  });
+}
+
+function setDisease(d) {
+  currentDisease = d; selectedHospital = null;
+  document.body.style.background = DISEASE_BG[d] || '#f5f4f0';
+  document.querySelectorAll('.d-btn').forEach(b => {
+    const active = b.dataset.disease === d;
+    b.classList.toggle('active', active);
+  });
+  buildFilters(); renderAll();
+}
+
+function getHospitals() {
+  const s = new Set();
+  RAW[currentDisease].weekly_by_hospital.forEach(r => s.add(r['Hospital Name']));
+  return [...s].sort();
+}
+
+function getLatestWeek() {
+  return GLOBAL_WEEKS[GLOBAL_WEEKS.length - 1] || '';
+}
+
+function getRegionalCaseMap(period, mode = activeView) {
+  const d = RAW[currentDisease] || {};
+  const rows = mode === 'monthly'
+    ? (d.monthly_by_region || []).filter(r => r.month === period)
+    : (d.weekly_by_region || []).filter(r => r.week === period);
+
+  const cases = {};
+  rows.forEach(r => {
+    const region = r.region;
+    if (!region) return;
+    cases[region] = (cases[region] || 0) + Number(r.count || 0);
+  });
+  return cases;
+}
+
+function buildFilters() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML = '<span class="pill-label">Hospital:</span>';
+  const all = document.createElement('button');
+  all.className = 'pill active'; all.textContent = 'All';
+  all.onclick = () => { selectedHospital = null; updatePills(); renderHospital(); };
+  row.appendChild(all);
+  getHospitals().forEach(h => {
+    const p = document.createElement('button');
+    p.className = 'pill'; p.textContent = h;
+    p.style.borderLeft = '3px solid ' + (HOSP_COLORS[h] || '#888');
+    p.onclick = () => { selectedHospital = (selectedHospital === h) ? null : h; updatePills(); renderHospital(); };
+    row.appendChild(p);
+  });
+}
+
+function updatePills() {
+  document.querySelectorAll('#filterRow .pill').forEach((p, i) => {
+    if (i === 0) p.classList.toggle('active', !selectedHospital);
+    else p.classList.toggle('active', p.textContent === selectedHospital);
+  });
+}
+
+function renderStats() {
+  const d = RAW[currentDisease];
+  let total = d.total, peak = '', peakVal = 0;
+  const wm = {};
+  d.weekly_by_hospital.forEach(r => { wm[r.week] = (wm[r.week] || 0) + r.count; });
+  Object.entries(wm).forEach(([w, c]) => { if (c > peakVal) { peakVal = c; peak = w; } });
+  const g = d.by_gender, mRow = g.find(x => x.Gender === 'M');
+  const mRatio = mRow ? Math.round(mRow.count / g.reduce((s, x) => s + x.count, 0) * 100) : 0;
+  const topAge = [...d.by_age].sort((a, b) => b.count - a.count)[0];
+  const months = d.monthly;
+  const trend = months.length >= 2 ? (months[months.length-1].count > months[months.length-2].count ? 'Rising' : 'Falling') : 'N/A';
+  const tColor = trend === 'Rising' ? '#E24B4A' : '#1D9E75';
+  const accentColor = DISEASE_COLORS[currentDisease];
+  const peakPeriod = peak ? peak.slice(5).replace('-', ' - ') : '—';
+  const topAgeGroup = topAge ? topAge.age_group : '—';
+  const topAgeCount = topAge ? topAge.count : 0;
+  document.getElementById('bannerSummary').innerHTML = `
+    <div class="banner-card"><div class="card-label">Total Cases</div><div class="card-value">${total.toLocaleString()}</div><div class="card-sub">All Hospitals</div></div>
+    <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod ? 'Week ' + peakPeriod : '—'}</div></div>
+    <div class="banner-card age-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAgeGroup}<span class="age-suffix">Y</span></div><div class="card-sub">${topAgeCount ? topAgeCount.toLocaleString() + ' cases' : '—'}</div></div>`;
+}
+
+function dc(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderWeekly() {
+  dc('weekly');
+  const chartBox = document.getElementById('weeklyChartBox');
+  if (!chartBox) return;
+
+  let scrollShell = document.getElementById('weeklyScrollShell');
+  let scrollTrack = document.getElementById('weeklyScrollTrack');
+  let chartCanvas = document.getElementById('chartWeekly');
+  if (!scrollShell || !scrollTrack || !chartCanvas) {
+    chartBox.innerHTML = `
+      <div class="chart-scroll-shell" id="weeklyScrollShell">
+        <div class="chart-scroll-track" id="weeklyScrollTrack" style="position:relative;height:280px;margin-left:-8px">
+          <canvas id="chartWeekly"></canvas>
+        </div>
+      </div>`;
+    scrollShell = document.getElementById('weeklyScrollShell');
+    scrollTrack = document.getElementById('weeklyScrollTrack');
+    chartCanvas = document.getElementById('chartWeekly');
+  }
+
+  let rows = RAW[currentDisease].weekly_by_hospital;
+  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+
+  const weeks = GLOBAL_WEEKS;
+  const totalsByWeek = {};
+  rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
+  const data = weeks.map(w => totalsByWeek[w] || 0);
+
+  if (!weeks.length || data.every(v => v === 0)) {
+    chartBox.innerHTML = '<div class="zero-msg">No data</div>';
+    return;
+  }
+
+  const totalWeeks = weeks.length;
+  const viewportWidth = Math.max(scrollShell?.clientWidth || 0, chartBox.clientWidth || 0);
+  const slotWidth = viewportWidth ? viewportWidth / WEEKLY_VIEWPORT_WEEKS : 56;
+  const chartWidth = Math.max(viewportWidth, Math.ceil(totalWeeks * slotWidth));
+  if (scrollTrack) {
+    scrollTrack.style.width = `${chartWidth}px`;
+    scrollTrack.style.minWidth = `${chartWidth}px`;
+  }
+  if (scrollShell && !scrollShell.dataset.horizontalScrollBound) {
+    scrollShell.dataset.horizontalScrollBound = '1';
+    scrollShell.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      event.preventDefault();
+      scrollShell.scrollBy({ left: event.deltaY, behavior: 'smooth' });
+    }, { passive: false });
+  }
+
+  let peakIndex = 0;
+  let peakVal = -Infinity;
+  for (let i = 0; i < data.length; i++) {
+    if ((data[i] || 0) > peakVal) {
+      peakVal = data[i] || 0;
+      peakIndex = i;
+    }
+  }
+
+  const accent = '#4a4a4a';
+  document.getElementById('legendWeekly').innerHTML = '';
+
+  const formatWeeklyTick = (rawDate, index) => {
+    if (!rawDate) return '';
+    const [year, month, day] = rawDate.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const shortMonth = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const labelDay = String(day).padStart(2, '0');
+    const prev = index > 0 ? weeks[index - 1] : null;
+    const prevDate = prev ? prev.split('-').map(Number) : null;
+    const isFirst = index === 0;
+    const monthChanged = !prevDate || prevDate[1] !== month || prevDate[0] !== year;
+    return isFirst || monthChanged ? `${shortMonth} ${labelDay}` : labelDay;
+  };
+
+  const boundaryLabels = weeks.map((week, index) => formatWeeklyTick(week, index));
+
+  charts['weekly'] = new Chart(chartCanvas, {
+    type: 'bar',
+    data: {
+      labels: weeks,
+      datasets: [{
+        label: 'Total cases',
+        data,
+        backgroundColor: accent,
+        borderRadius: 14,
+        borderSkipped: false,
+        barPercentage: 0.92,
+        categoryPercentage: 0.96,
+        maxBarThickness: 110
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: { top: 38, right: 28, bottom: 30, left: 28 }
+      },
+      plugins: {
+        legend: { display: false },
+        weeklyPeakHighlight: {
+          peakIndex,
+          label: 'Peak Week'
+        },
+        weeklyIntervalGrid: {
+          enabled: true,
+          labels: boundaryLabels
+        }
+      },
+      scales: {
+        x: {
+          type: 'category',
+          offset: true,
+          ticks: {
+            display: false,
+            font: { size: 10 },
+            align: 'center',
+            autoSkip: false,
+            maxTicksLimit: weeks.length,
+            padding: 4,
+            callback: (value, index) => formatWeeklyTick(weeks[index], index)
+          },
+          grid: {
+            display: false,
+            drawBorder: false,
+            drawOnChartArea: false,
+            tickLength: 0,
+            drawTicks: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grace: '15%',
+          ticks: {
+            font: { size: 10 },
+            precision: 0,
+            callback: value => Number.isInteger(value) ? value : ''
+          }
+        }
+      }
+    },
+    plugins: [weeklyIntervalGridPlugin, weeklyPeakHighlightPlugin, barValueLabelsPlugin]
+  });
+}
+
+function renderHospital() {
+  dc('hosp');
+  const isMonthly = activeView === 'monthly';
+  const chartHost = document.getElementById('chartHosp')?.parentElement;
+  if (!chartHost) return;
+
+  let chartCanvas = document.getElementById('chartHosp');
+  if (!chartCanvas) {
+    chartHost.innerHTML = '<canvas id="chartHosp"></canvas>';
+    chartCanvas = document.getElementById('chartHosp');
+  }
+
+  let labels = [];
+  let datasets = [];
+  let totals = [];
+
+  if (isMonthly) {
+    const months = [...GLOBAL_MONTHS];
+    let rows = RAW[currentDisease].monthly_by_hospital || [];
+    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+    const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+    if (!rows.length) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+      document.getElementById('legendWeekly').innerHTML = '';
+      return;
+    }
+    labels = months;
+    datasets = hospitals.map(h => {
+      const values = months.map(m => {
+        const r = rows.find(x => x.month === m && x['Hospital Name'] === h);
+        return r ? r.count : 0;
+      });
+      return {
+        label: h,
+        data: values,
+        borderColor: HOSP_COLORS[h] || '#888',
+        backgroundColor: hexToRgba(HOSP_COLORS[h] || '#888', 0.14),
+        tension: 0.3,
+        fill: false,
+        pointRadius: 3,
+        borderWidth: 2
+      };
+    });
+    document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+    totals = months.map((m, index) => datasets.reduce((sum, ds) => sum + (ds.data[index] || 0), 0));
+  } else {
+    let rows = RAW[currentDisease].weekly_by_hospital;
+    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+    const weeks = GLOBAL_WEEKS;
+    const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+    if (!rows.length) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+      document.getElementById('legendWeekly').innerHTML = '';
+      return;
+    }
+    labels = weeks.map(w => w.slice(5));
+    datasets = hospitals.map(h => {
+      const values = weeks.map(w => {
+        const r = rows.find(x => x.week === w && x['Hospital Name'] === h);
+        return r ? r.count : 0;
+      });
+      return {
+        label: h,
+        data: values,
+        borderColor: HOSP_COLORS[h] || '#888',
+        backgroundColor: hexToRgba(HOSP_COLORS[h] || '#888', 0.14),
+        tension: 0.3,
+        fill: false,
+        pointRadius: 2,
+        borderWidth: 2
+      };
+    });
+    document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+    totals = weeks.map((w, index) => datasets.reduce((sum, ds) => sum + (ds.data[index] || 0), 0));
+  }
+
+  if (!labels.length || totals.every(v => v === 0)) {
+    chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+    return;
+  }
+
+  const peakIndex = totals.reduce((best, value, index) => value > totals[best] ? index : best, 0);
+  const highlightColor = hexToRgba('#F5DCDA', 0.4);
+  const maxTotal = Math.max(...totals, 1);
+
+  charts['hosp'] = new Chart(chartCanvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        annotation: {
+          annotations: {
+            peakArea: {
+              type: 'box',
+              xMin: peakIndex - 0.5,
+              xMax: peakIndex + 0.5,
+              yMin: 0,
+              yMax: maxTotal,
+              backgroundColor: highlightColor,
+              borderWidth: 0,
+              drawTime: 'beforeDatasetsDraw',
+              label: {
+                content: [isMonthly ? 'Peak Month' : 'Peak Week'],
+                enabled: true,
+                position: 'center',
+                yAdjust: -24,
+                backgroundColor: 'transparent',
+                color: '#4d3232',
+                font: { family: 'monospace', size: 12 },
+                padding: 2
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 }, offset: true },
+        y: { beginAtZero: true, grace: '5%', ticks: { font: { size: 10 }, precision: 0, callback: value => Number.isInteger(value) ? value : '' } }
+      }
+    }
+  });
+}
+
+function renderAge() {
+  dc('age');
+  const ages = RAW[currentDisease].by_age;
+  const color = DISEASE_COLORS[currentDisease] || '#378ADD';
+  const maxBarThickness = ages.length >= 9 ? 42 : 54;
+  charts['age'] = new Chart(document.getElementById('chartAge'), {
+    type:'bar',
+    data:{ labels:ages.map(a=>a.age_group), datasets:[{ data:ages.map(a=>a.count), backgroundColor:color+'99', borderColor:color, borderWidth:0, borderRadius:14, borderSkipped:false, barPercentage:0.9, categoryPercentage:0.95, maxBarThickness:maxBarThickness + 8 }] },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:8, right:10, bottom:2, left:10 } },
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}}, scales:{ x:{ticks:{font:{size:11}, maxRotation:0, minRotation:0, autoSkip:false}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}}} }
+  });
+}
+
+function renderMonthly() {
+  dc('monthly');
+  const months = GLOBAL_MONTHS;
+  const monthCounts = RAW[currentDisease].monthly.reduce((map, item) => { map[item.month] = item.count; return map; }, {});
+  const accent = '#4a4a4a';
+  charts['monthly'] = new Chart(document.getElementById('chartMonthly'), {
+    type:'bar',
+    data:{ labels:months.map(m=>m), datasets:[{ data:months.map(m=>monthCounts[m] || 0), backgroundColor:accent, borderColor:accent, borderWidth:0, borderRadius:14, borderSkipped:false, barPercentage:0.92, categoryPercentage:0.96, maxBarThickness:110 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
+      scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } }
+  });
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+  const value = parseInt(full, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function renderRegionalMap() {
+  const container = document.getElementById('regionMap');
+  const legend = document.getElementById('regionMapLegend');
+  const captionEl = document.getElementById('regionMapCaption');
+  if (!container || !legend) return;
+
+  if (!GEOJSON_FEATURES.length) {
+    container.innerHTML = '<div class="zero-msg">No regional data available</div>';
+    legend.innerHTML = '';
+    if (captionEl) captionEl.textContent = '';
+    return;
+  }
+
+  const isMonthly = activeView === 'monthly';
+  const diseaseData = RAW[currentDisease] || {};
+  const regionSeries = isMonthly ? (diseaseData.monthly_by_region || []) : (diseaseData.weekly_by_region || []);
+  const periodKey = isMonthly ? 'month' : 'week';
+  const fallbackPeriods = isMonthly ? GLOBAL_MONTHS : GLOBAL_WEEKS;
+  const latestPeriod = regionSeries.length
+    ? [...regionSeries].map(item => item[periodKey]).filter(Boolean).sort().pop() || fallbackPeriods[fallbackPeriods.length - 1] || ''
+    : fallbackPeriods[fallbackPeriods.length - 1] || '';
+
+  const caseMap = getRegionalCaseMap(latestPeriod, activeView);
+  const regions = GEOJSON_FEATURES
+    .map(feature => feature.properties?.[GEOJSON_REGION_PROPERTY])
+    .filter(Boolean)
+    .filter((name, index, arr) => arr.indexOf(name) === index);
+  const maxCases = Math.max(...regions.map(region => caseMap[region] || 0), 1);
+  const color = DISEASE_COLORS[currentDisease] || '#378ADD';
+  const noCasesFill = '#E6E8EC';
+  const lowThreshold = maxCases / 3;
+  const mediumThreshold = (maxCases * 2) / 3;
+
+  // Low / Medium / High are relative to the maximum regional case count for the current disease and period.
+  const getIntensityCategory = (count) => {
+    if (count === 0) return 'No cases';
+    if (count <= lowThreshold) return 'Low';
+    if (count <= mediumThreshold) return 'Medium';
+    return 'High';
+  };
+
+  legend.innerHTML = [
+    '<span class="legend-item"><span class="legend-swatch" style="background: ' + noCasesFill + '"></span>No cases</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.30) + '"></span>Low</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.55) + '"></span>Medium</span>',
+    '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.85) + '"></span>High</span>'
+  ].join('');
+
+  const margin = 24;
+  const width = 760;
+  const height = 500;
+  const allCoords = [];
+  GEOJSON_FEATURES.forEach(feature => {
+    const geometry = feature.geometry;
+    const walk = (coords) => {
+      if (!coords || !coords.length) return;
+      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+        allCoords.push(coords);
+      } else {
+        coords.forEach(walk);
+      }
+    };
+    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
+  });
+
+  const lons = allCoords.flat().map(([lon]) => lon);
+  const lats = allCoords.flat().map(([, lat]) => lat);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  const projectPoint = ([lon, lat]) => ({
+    x: margin + ((lon - minLon) / (maxLon - minLon || 1)) * (width - margin * 2),
+    y: height - margin - ((lat - minLat) / (maxLat - minLat || 1)) * (height - margin * 2)
+  });
+
+  const getFeatureLabelPoint = (geometry) => {
+    const points = [];
+    const walk = (coords) => {
+      if (!coords || !coords.length) return;
+      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+        points.push(...coords);
+      } else {
+        coords.forEach(walk);
+      }
+    };
+
+    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
+
+    if (!points.length) return null;
+
+    const projectedPoints = points.map(point => projectPoint(point));
+    const minX = Math.min(...projectedPoints.map(point => point.x));
+    const maxX = Math.max(...projectedPoints.map(point => point.x));
+    const minY = Math.min(...projectedPoints.map(point => point.y));
+    const maxY = Math.max(...projectedPoints.map(point => point.y));
+
+    return {
+      x: (minX + maxX) / 2,
+      y: (minY + maxY) / 2
+    };
+  };
+
+  const toPath = (rings) => rings.map(ring => {
+    const points = ring.map(point => {
+      const projected = projectPoint(point);
+      return `${projected.x.toFixed(2)},${projected.y.toFixed(2)}`;
+    }).join(' ');
+    return `M ${points} Z`;
+  }).join(' ');
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+  const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  background.setAttribute('x', '0');
+  background.setAttribute('y', '0');
+  background.setAttribute('width', String(width));
+  background.setAttribute('height', String(height));
+  background.setAttribute('fill', 'transparent');
+  svg.appendChild(background);
+
+  GEOJSON_FEATURES.forEach(feature => {
+    const regionName = feature.properties?.[GEOJSON_REGION_PROPERTY];
+    const geometry = feature.geometry;
+    const count = caseMap[regionName] || 0;
+    const category = getIntensityCategory(count);
+    const fill = category === 'No cases'
+      ? noCasesFill
+      : category === 'Low'
+        ? hexToRgba(color, 0.30)
+        : category === 'Medium'
+          ? hexToRgba(color, 0.55)
+          : hexToRgba(color, 0.85);
+
+    const createPath = (coords) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', toPath(coords));
+      path.setAttribute('fill', fill);
+      path.setAttribute('stroke', '#ffffff');
+      path.setAttribute('stroke-width', '1.2');
+      svg.appendChild(path);
+    };
+
+    if (geometry?.type === 'Polygon') createPath(geometry.coordinates);
+    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(createPath);
+
+    if (regionName) {
+      const labelPoint = getFeatureLabelPoint(geometry);
+      if (labelPoint) {
+        const offset = REGION_LABEL_OFFSETS[regionName] || { x: 0, y: 0 };
+        const point = {
+          x: labelPoint.x + offset.x,
+          y: labelPoint.y + offset.y
+        };
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', String(point.x));
+        text.setAttribute('y', String(point.y));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('class', 'map-region-label');
+        text.textContent = `${regionName} · ${count}`;
+        svg.appendChild(text);
+      }
+    }
+  });
+
+  container.innerHTML = '';
+  container.appendChild(svg);
+
+  const captionText = `${isMonthly ? 'Latest month' : 'Latest week'}: ${latestPeriod || '—'} · ${currentDisease}`;
+  if (captionEl) {
+    captionEl.textContent = captionText;
+  } else {
+    const mapCaption = document.createElement('div');
+    mapCaption.className = 'map-caption';
+    mapCaption.textContent = captionText;
+    container.appendChild(mapCaption);
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderWeekly();
+  renderHospital();
+  renderAge();
+  renderMonthly();
+  renderRegionalMap();
+}
+
+function setupViewSwitch() {
+  const buttons = document.querySelectorAll('.view-btn');
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+      activeView = btn.dataset.mode;
+      buttons.forEach(b => b.classList.toggle('active', b === btn));
+      const weeklyOnlyIds = ['weeklyChartBox'];
+      const alwaysVisibleIds = ['hospitalTrendBox', 'ageChartBox', 'regionChartBox'];
+      weeklyOnlyIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', activeView !== 'weekly'));
+      alwaysVisibleIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', false));
+      document.getElementById('monthlyChartBox')?.classList.toggle('hidden', activeView !== 'monthly');
+      renderAll();
+    };
+  });
+}
+
+if (!window.__weeklyChartResizeBound) {
+  window.__weeklyChartResizeBound = true;
+  window.addEventListener('resize', () => {
+    if (document.getElementById('weeklyChartBox')) renderAll();
+  });
+}

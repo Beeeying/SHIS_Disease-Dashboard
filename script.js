@@ -18,10 +18,8 @@ let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
-
-const WEEKLY_VIEWPORT_WEEKS = 15;
-let GEOJSON_REGION_PROPERTY = 'NAM_1';
 let weeklyWindowStart = 0;
+const WEEKLY_VIEWPORT_WEEKS = 15;
 
 const REGION_LABEL_OFFSETS = {
   Awdal: { x: 0, y: 0 },
@@ -786,13 +784,13 @@ function hexToRgba(hex, alpha) {
 function renderRegionalMap() {
   const container = document.getElementById('regionMap');
   const legend = document.getElementById('regionMapLegend');
-  const captionEl = document.getElementById('regionMapCaption');
+  const caption = document.getElementById('regionMapCaption');
   if (!container || !legend) return;
 
   if (!GEOJSON_FEATURES.length) {
     container.innerHTML = '<div class="zero-msg">No regional data available</div>';
     legend.innerHTML = '';
-    if (captionEl) captionEl.textContent = '';
+    if (caption) caption.textContent = '';
     return;
   }
 
@@ -955,14 +953,16 @@ function renderRegionalMap() {
   container.innerHTML = '';
   container.appendChild(svg);
 
-  const captionText = `${isMonthly ? 'Latest month' : 'Latest week'}: ${latestPeriod || '—'} · ${currentDisease}`;
+  if (!caption) {
+    const captionEl = document.createElement('div');
+    captionEl.id = 'regionMapCaption';
+    captionEl.className = 'card-sub map-caption';
+    container.parentElement?.appendChild(captionEl);
+  }
+
+  const captionEl = document.getElementById('regionMapCaption');
   if (captionEl) {
-    captionEl.textContent = captionText;
-  } else {
-    const mapCaption = document.createElement('div');
-    mapCaption.className = 'map-caption';
-    mapCaption.textContent = captionText;
-    container.appendChild(mapCaption);
+    captionEl.textContent = `${isMonthly ? 'Latest month' : 'Latest week'}: ${latestPeriod || '—'} · ${currentDisease}`;
   }
 }
 

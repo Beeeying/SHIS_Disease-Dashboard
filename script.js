@@ -12,12 +12,16 @@ const HOSP_COLORS = {
 };
 
 let currentDisease = 'Measles', selectedHospital = null, charts = {};
-let RAW = {}; // 原本寫死的資料，現在從 JSON 動態載入
+let RAW = {}; 
 let GLOBAL_WEEKS = [];
 let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
 let REGION_BY_HOSPITAL = {};
 let GEOJSON_FEATURES = [];
+
+let GEOJSON_REGION_PROPERTY = 'NAM_1';
+let SVG_MAP_TEMPLATE = null;
+
 let weeklyWindowStart = 0;
 const WEEKLY_VIEWPORT_WEEKS = 15;
 
@@ -282,14 +286,14 @@ Promise.all([
     }
     return res.json();
   }),
-  fetch('regions.geojson').then(res => {
+  fetch('assets/somaliland_regions_map.svg').then(res => {
     if (!res.ok) {
-      throw new Error(`Failed to load regions geojson: ${res.status}`);
+      throw new Error(`Failed to load SVG map: ${res.status}`);
     }
-    return res.json();
+    return res.text();
   })
 ])
-  .then(([dashboardJson, geojson]) => {
+  .then(([dashboardJson, svgText]) => {
     RAW = adaptDashboardJson(dashboardJson);
     rebuildGlobalPeriodsFromRaw(RAW);
 
@@ -304,7 +308,9 @@ Promise.all([
       (dashboardJson.metadata && dashboardJson.metadata.geojson_region_property) ||
       GEOJSON_REGION_PROPERTY;
 
-    GEOJSON_FEATURES = geojson.features || [];
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    SVG_MAP_TEMPLATE = svgDoc.documentElement;
 
     if (!RAW[currentDisease]) {
       currentDisease = Object.keys(RAW)[0] || currentDisease;
@@ -781,13 +787,29 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// Per-region label positioning offsets (in pixels before scale conversion)
+const SVG_REGION_LABEL_OFFSETS = {
+  Awdal: { dx: -10, dy: 0 },
+  Sahil: { dx: 20, dy: 5 },
+  Sanaag: { dx: 0, dy: 20 },
+  Sool: { dx: 8, dy: 20 },
+  Togdheer: { dx: -40, dy: -10 },
+  'Maroodi Jeex': { dx: 0, dy: -5 }
+};
+
+// Helper function to determine how to split region labels into lines
+function getRegionLabelLines(regionName, count) {
+  return [regionName, String(count)];
+}
+
 function renderRegionalMap() {
   const container = document.getElementById('regionMap');
   const legend = document.getElementById('regionMapLegend');
   const caption = document.getElementById('regionMapCaption');
   if (!container || !legend) return;
 
-  if (!GEOJSON_FEATURES.length) {
+  const regionGroupEls = SVG_MAP_TEMPLATE ? Array.from(SVG_MAP_TEMPLATE.querySelectorAll('.svg-region')) : [];
+  if (!regionGroupEls.length) {
     container.innerHTML = '<div class="zero-msg">No regional data available</div>';
     legend.innerHTML = '';
     if (caption) caption.textContent = '';
@@ -804,8 +826,8 @@ function renderRegionalMap() {
     : fallbackPeriods[fallbackPeriods.length - 1] || '';
 
   const caseMap = getRegionalCaseMap(latestPeriod, activeView);
-  const regions = GEOJSON_FEATURES
-    .map(feature => feature.properties?.[GEOJSON_REGION_PROPERTY])
+  const regions = regionGroupEls
+    .map(regionEl => regionEl.dataset.region)
     .filter(Boolean)
     .filter((name, index, arr) => arr.indexOf(name) === index);
   const maxCases = Math.max(...regions.map(region => caseMap[region] || 0), 1);
@@ -829,86 +851,21 @@ function renderRegionalMap() {
     '<span class="legend-item"><span class="legend-swatch" style="background:' + hexToRgba(color, 0.85) + '"></span>High</span>'
   ].join('');
 
-  const margin = 24;
-  const width = 760;
-  const height = 500;
-  const allCoords = [];
-  GEOJSON_FEATURES.forEach(feature => {
-    const geometry = feature.geometry;
-    const walk = (coords) => {
-      if (!coords || !coords.length) return;
-      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
-        allCoords.push(coords);
-      } else {
-        coords.forEach(walk);
-      }
-    };
-    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
-    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
-  });
-
-  const lons = allCoords.flat().map(([lon]) => lon);
-  const lats = allCoords.flat().map(([, lat]) => lat);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-
-  const projectPoint = ([lon, lat]) => ({
-    x: margin + ((lon - minLon) / (maxLon - minLon || 1)) * (width - margin * 2),
-    y: height - margin - ((lat - minLat) / (maxLat - minLat || 1)) * (height - margin * 2)
-  });
-
-  const getFeatureLabelPoint = (geometry) => {
-    const points = [];
-    const walk = (coords) => {
-      if (!coords || !coords.length) return;
-      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
-        points.push(...coords);
-      } else {
-        coords.forEach(walk);
-      }
-    };
-
-    if (geometry?.type === 'Polygon') walk(geometry.coordinates);
-    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(polygon => walk(polygon));
-
-    if (!points.length) return null;
-
-    const projectedPoints = points.map(point => projectPoint(point));
-    const minX = Math.min(...projectedPoints.map(point => point.x));
-    const maxX = Math.max(...projectedPoints.map(point => point.x));
-    const minY = Math.min(...projectedPoints.map(point => point.y));
-    const maxY = Math.max(...projectedPoints.map(point => point.y));
-
-    return {
-      x: (minX + maxX) / 2,
-      y: (minY + maxY) / 2
-    };
-  };
-
-  const toPath = (rings) => rings.map(ring => {
-    const points = ring.map(point => {
-      const projected = projectPoint(point);
-      return `${projected.x.toFixed(2)},${projected.y.toFixed(2)}`;
-    }).join(' ');
-    return `M ${points} Z`;
-  }).join(' ');
-
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
-  const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  background.setAttribute('x', '0');
-  background.setAttribute('y', '0');
-  background.setAttribute('width', String(width));
-  background.setAttribute('height', String(height));
-  background.setAttribute('fill', 'transparent');
-  svg.appendChild(background);
+  const mapLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const labelLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  labelLayer.setAttribute('class', 'map-label-layer');
+  const regionGroupClones = regionGroupEls.map(regionEl => regionEl.cloneNode(true));
 
-  GEOJSON_FEATURES.forEach(feature => {
-    const regionName = feature.properties?.[GEOJSON_REGION_PROPERTY];
-    const geometry = feature.geometry;
+  regionGroupClones.forEach(clonedRegion => {
+    const regionName = clonedRegion.dataset?.region || clonedRegion.getAttribute('data-region');
+    if (!regionName) return;
+
     const count = caseMap[regionName] || 0;
     const category = getIntensityCategory(count);
     const fill = category === 'No cases'
@@ -919,39 +876,94 @@ function renderRegionalMap() {
           ? hexToRgba(color, 0.55)
           : hexToRgba(color, 0.85);
 
-    const createPath = (coords) => {
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', toPath(coords));
+    Array.from(clonedRegion.querySelectorAll('path')).forEach(path => {
       path.setAttribute('fill', fill);
       path.setAttribute('stroke', '#ffffff');
-      path.setAttribute('stroke-width', '1.2');
-      svg.appendChild(path);
-    };
+      path.setAttribute('stroke-width', '2');
+    });
 
-    if (geometry?.type === 'Polygon') createPath(geometry.coordinates);
-    if (geometry?.type === 'MultiPolygon') geometry.coordinates.forEach(createPath);
-
-    if (regionName) {
-      const labelPoint = getFeatureLabelPoint(geometry);
-      if (labelPoint) {
-        const offset = REGION_LABEL_OFFSETS[regionName] || { x: 0, y: 0 };
-        const point = {
-          x: labelPoint.x + offset.x,
-          y: labelPoint.y + offset.y
-        };
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', String(point.x));
-        text.setAttribute('y', String(point.y));
-        text.setAttribute('text-anchor', 'middle');
-        text.setAttribute('class', 'map-region-label');
-        text.textContent = `${regionName} · ${count}`;
-        svg.appendChild(text);
-      }
-    }
+    mapLayer.appendChild(clonedRegion);
   });
 
+  svg.appendChild(mapLayer);
+  svg.appendChild(labelLayer);
   container.innerHTML = '';
   container.appendChild(svg);
+
+  const padding = 16;
+  const bbox = mapLayer.getBBox();
+  const minX = bbox ? bbox.x : 0;
+  const minY = bbox ? bbox.y : 0;
+  const maxX = bbox ? bbox.x + bbox.width : 0;
+  const maxY = bbox ? bbox.y + bbox.height : 0;
+  const viewWidth = Math.max(maxX - minX + padding * 2, 1);
+  const viewHeight = Math.max(maxY - minY + padding * 2, 1);
+  const offsetX = minX - padding;
+  const offsetY = minY - padding;
+
+  svg.setAttribute('viewBox', `${offsetX} ${offsetY} ${viewWidth} ${viewHeight}`);
+
+  // Calculate label font size and stroke width based on screen-to-SVG unit conversion.
+  // This ensures labels appear consistently around 14–16 screen pixels regardless of zoom/scale.
+  const svgRect = svg.getBoundingClientRect();
+  const viewBox = svg.viewBox.baseVal;
+  const unitsPerPixel = Math.max(
+    viewBox.width / svgRect.width,
+    viewBox.height / svgRect.height
+  );
+  const labelFontSize = 12 * unitsPerPixel;
+  const labelStrokeWidth = 2.2 * unitsPerPixel;
+
+  Array.from(mapLayer.querySelectorAll('.svg-region')).forEach(clonedRegion => {
+    const regionName = clonedRegion.dataset?.region || clonedRegion.getAttribute('data-region');
+    if (!regionName) return;
+
+    const count = caseMap[regionName] || 0;
+
+    // Use getBoundingClientRect() to calculate screen center, then convert back to SVG coordinates.
+    const regionRect = clonedRegion.getBoundingClientRect();
+    const screenCenterX = regionRect.left + regionRect.width / 2;
+    const screenCenterY = regionRect.top + regionRect.height / 2;
+
+    // Create SVG point and convert screen coordinates to SVG coordinates.
+    const point = svg.createSVGPoint();
+    point.x = screenCenterX;
+    point.y = screenCenterY;
+    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+
+    // Apply per-region offset
+    const offset = SVG_REGION_LABEL_OFFSETS[regionName] || { dx: 0, dy: 0 };
+    const labelX = svgPoint.x + offset.dx * unitsPerPixel;
+    const labelY = svgPoint.y + offset.dy * unitsPerPixel;
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', String(labelX));
+    text.setAttribute('y', String(labelY));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('class', 'map-region-label');
+    text.style.fontSize = `${labelFontSize}px`;
+    text.style.fontWeight = '700';
+    text.style.fill = '#2f2f2f';
+    text.style.stroke = '#ffffff';
+    text.style.strokeOpacity = '0.9';
+    text.style.strokeWidth = `${labelStrokeWidth}px`;
+    text.style.paintOrder = 'stroke';
+    text.style.strokeLinejoin = 'round';
+    text.style.pointerEvents = 'none';
+
+    // Add multi-line label using tspans
+    const lines = getRegionLabelLines(regionName, count);
+    lines.forEach((line, index) => {
+      const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+      tspan.setAttribute('x', String(labelX));
+      tspan.setAttribute('dy', index === 0 ? String(-0.35 * labelFontSize) : String(1.15 * labelFontSize));
+      tspan.textContent = line;
+      text.appendChild(tspan);
+    });
+
+    labelLayer.appendChild(text);
+  });
 
   if (!caption) {
     const captionEl = document.createElement('div');

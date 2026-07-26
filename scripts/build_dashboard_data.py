@@ -23,28 +23,49 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from pandas.api.types import is_object_dtype, is_string_dtype
 
 
-def clean_column_name(value: Any) -> str:
+def normalize_column_name(value: Any) -> str:
     if value is None:
         return "Unnamed"
     value = re.sub(r"\s+", " ", str(value).strip())
     return value or "Unnamed"
 
 
+def normalize_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
+    normalized_df = df.copy()
+    normalized_columns = make_unique_columns(list(normalized_df.columns))
+    normalized_df.columns = normalized_columns
+    return normalized_df
+
+
+def strip_string_values(df: pd.DataFrame) -> pd.DataFrame:
+    stripped_df = df.copy()
+    for column in stripped_df.columns:
+        series = stripped_df[column]
+        if is_object_dtype(series) or is_string_dtype(series):
+            stripped_df[column] = series.apply(
+                lambda value: value.strip() if isinstance(value, str) else value
+            )
+    return stripped_df
+
+
 def make_unique_columns(columns: list[Any]) -> list[str]:
     cleaned: list[str] = []
     seen: dict[str, int] = {}
     for c in columns:
-        base = clean_column_name(c)
-        seen[base] = seen.get(base, 0) + 1
-        cleaned.append(base if seen[base] == 1 else f"{base}_{seen[base]}")
+        base = normalize_column_name(c)
+        count = seen.get(base, 0)
+        seen[base] = count + 1
+        cleaned.append(base if count == 0 else f"{base}_{count + 1}")
     return cleaned
 
 
 def load_excel(path: Path) -> pd.DataFrame:
     df = pd.read_excel(path, sheet_name=0, engine="openpyxl")
-    df.columns = make_unique_columns(list(df.columns))
+    df = normalize_dataframe_columns(df)
+    df = strip_string_values(df)
     return df
 
 

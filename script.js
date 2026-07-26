@@ -208,6 +208,25 @@ function showLoadError(message) {
 }
 
 
+function renderDashboardMetadata(metadata = {}) {
+  const subtitleEl = document.getElementById('dashboardSubtitle');
+  const sourceEl = document.getElementById('dashboardSource');
+
+  if (subtitleEl) {
+    const subtitleText = metadata.subtitle || [
+      metadata.date_range?.label,
+      metadata.reporting_hospitals != null ? `${metadata.reporting_hospitals} hospitals` : null,
+      'ICD-10 based',
+      'TaiwanICDF / MoHD'
+    ].filter(Boolean).join(' · ');
+    subtitleEl.textContent = subtitleText;
+  }
+
+  if (sourceEl && metadata.source_file) {
+    sourceEl.textContent = `Source: ${metadata.source_file}`;
+  }
+}
+
 function adaptDashboardJson(json) {
   const diseases = json && json.diseases ? json.diseases : {};
   const adapted = {};
@@ -296,6 +315,7 @@ Promise.all([
   .then(([dashboardJson, svgText]) => {
     RAW = adaptDashboardJson(dashboardJson);
     rebuildGlobalPeriodsFromRaw(RAW);
+    renderDashboardMetadata(dashboardJson.metadata || {});
 
     // Optional future support if hospital-region mapping is added to dashboard_data.json
     REGION_BY_HOSPITAL =

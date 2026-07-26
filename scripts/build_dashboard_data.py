@@ -278,6 +278,18 @@ def validate_disease_summary(summary: dict[str, Any]) -> dict[str, Any]:
     return checks
 
 
+def format_date_range_label(start_date: Any, end_date: Any) -> str | None:
+    if start_date is None or pd.isna(start_date) or end_date is None or pd.isna(end_date):
+        return None
+
+    start_dt = pd.Timestamp(start_date).to_pydatetime()
+    end_dt = pd.Timestamp(end_date).to_pydatetime()
+
+    if start_dt.year == end_dt.year:
+        return f"{start_dt.strftime('%b')} – {end_dt.strftime('%b')} {start_dt.year}"
+    return f"{start_dt.strftime('%b %Y')} – {end_dt.strftime('%b %Y')}"
+
+
 def build_dashboard_data(
     input_path: Path,
     definitions_path: Path,
@@ -318,6 +330,12 @@ def build_dashboard_data(
         [h for h in hospitals if str(h) not in hospital_regions]
     )
 
+    reporting_hospitals = len(hospitals)
+    date_min = df_valid["date"].min() if not df_valid.empty else None
+    date_max = df_valid["date"].max() if not df_valid.empty else None
+    date_range_label = format_date_range_label(date_min, date_max)
+    generated_at = datetime.now(timezone.utc).isoformat()
+
     data_quality = {
         "source_row_count": int(len(df)),
         "valid_rows_for_time_series": int(len(df_valid)),
@@ -326,7 +344,7 @@ def build_dashboard_data(
         "missing_gender_count": int(df["gender"].isna().sum()) if "gender" in df else None,
         "missing_age_count": int(age_numeric.isna().sum()),
         "invalid_age_count": int(invalid_age_mask.sum()),
-        "reporting_hospitals": len(hospitals),
+        "reporting_hospitals": reporting_hospitals,
         "expected_hospitals": expected_hospitals,
         "hospital_list": hospitals,
         "hospitals_without_region": hospitals_without_region,
@@ -336,9 +354,20 @@ def build_dashboard_data(
     metadata = {
         "schema_version": "0.1",
         "source_file": input_path.name,
+        "generated_at": generated_at,
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "date_min": df_valid["date"].min().strftime("%Y-%m-%d") if not df_valid.empty else None,
-        "date_max": df_valid["date"].max().strftime("%Y-%m-%d") if not df_valid.empty else None,
+        "date_min": date_min.strftime("%Y-%m-%d") if date_min is not None and not pd.isna(date_min) else None,
+        "date_max": date_max.strftime("%Y-%m-%d") if date_max is not None and not pd.isna(date_max) else None,
+        "date_range": {
+            "start": date_min.strftime("%Y-%m-%d") if date_min is not None and not pd.isna(date_min) else None,
+            "end": date_max.strftime("%Y-%m-%d") if date_max is not None and not pd.isna(date_max) else None,
+            "label": date_range_label,
+        },
+        "reporting_hospitals": reporting_hospitals,
+        "expected_hospitals": expected_hospitals,
+        "subtitle": (
+            f"{date_range_label or 'Unknown'} · {reporting_hospitals} hospitals · ICD-10 based · TaiwanICDF / MoHD"
+        ),
         "source_columns": original_columns,
         "definition_file": definitions_path.name,
         "definition_schema_version": definitions.get("schema_version"),

@@ -39,6 +39,22 @@
       "keywords_any": [],
       "notes": "ICD-10 A00* cholera."
     },
+    "Typhoid": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A01.0"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A01.0 typhoid fever."
+    },
+    "Chikungunya": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A92.0"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A92.0 chikungunya virus disease."
+    },
     "AWD": {
       "match_mode": "icd_and_keyword",
       "icd10_prefixes": [

@@ -2,8 +2,8 @@
   "metadata": {
     "schema_version": "0.1",
     "source_file": "All Hospitals20260630.xlsx",
-    "generated_at": "2026-07-26T08:42:34.978020+00:00",
-    "generated_at_utc": "2026-07-26T08:42:34Z",
+    "generated_at": "2026-08-10T09:07:12.995884+00:00",
+    "generated_at_utc": "2026-08-10T09:07:13Z",
     "date_min": "2026-01-01",
     "date_max": "2026-06-29",
     "date_range": {
@@ -98,6 +98,22 @@
       ],
       "keywords_any": [],
       "notes": "ICD-10 A00* cholera."
+    },
+    "Typhoid": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A01.0"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A01.0 typhoid fever."
+    },
+    "Chikungunya": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A92.0"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A92.0 chikungunya virus disease."
     },
     "AWD": {
       "match_mode": "icd_and_keyword",
@@ -229,6 +245,46 @@
         "by_gender_sum": 92,
         "by_gender_matches_total": true,
         "by_age_sum": 92,
+        "by_age_matches_total": true
+      },
+      "Typhoid": {
+        "weekly_by_hospital_sum": 89,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 89,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 89,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 89,
+        "by_hospital_matches_total": true,
+        "by_region_sum": 89,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 89,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 89,
+        "monthly_by_region_matches_total": true,
+        "by_gender_sum": 89,
+        "by_gender_matches_total": true,
+        "by_age_sum": 89,
+        "by_age_matches_total": true
+      },
+      "Chikungunya": {
+        "weekly_by_hospital_sum": 4,
+        "weekly_by_hospital_matches_total": true,
+        "monthly_by_hospital_sum": 4,
+        "monthly_by_hospital_matches_total": true,
+        "monthly_sum": 4,
+        "monthly_matches_total": true,
+        "by_hospital_sum": 4,
+        "by_hospital_matches_total": true,
+        "by_region_sum": 4,
+        "by_region_matches_total": true,
+        "weekly_by_region_sum": 4,
+        "weekly_by_region_matches_total": true,
+        "monthly_by_region_sum": 4,
+        "monthly_by_region_matches_total": true,
+        "by_gender_sum": 4,
+        "by_gender_matches_total": true,
+        "by_age_sum": 4,
         "by_age_matches_total": true
       },
       "AWD": {
@@ -5285,6 +5341,712 @@
         {
           "age_group": "65+",
           "count": 17
+        }
+      ]
+    },
+    "Typhoid": {
+      "total": 89,
+      "weekly_by_hospital": [
+        {
+          "week": "2026-01-05",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "week": "2026-01-05",
+          "hospital": "HG",
+          "count": 5
+        },
+        {
+          "week": "2026-01-12",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-01-19",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-01-26",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-02-09",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "BE",
+          "count": 5
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "BE",
+          "count": 7
+        },
+        {
+          "week": "2026-04-06",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "BE",
+          "count": 6
+        },
+        {
+          "week": "2026-04-13",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-04-20",
+          "hospital": "BE",
+          "count": 7
+        },
+        {
+          "week": "2026-04-27",
+          "hospital": "BE",
+          "count": 5
+        },
+        {
+          "week": "2026-04-27",
+          "hospital": "GH",
+          "count": 3
+        },
+        {
+          "week": "2026-04-27",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "week": "2026-05-04",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-05-04",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-05-18",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "week": "2026-05-18",
+          "hospital": "HG",
+          "count": 1
+        },
+        {
+          "week": "2026-05-25",
+          "hospital": "BE",
+          "count": 6
+        },
+        {
+          "week": "2026-05-25",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-06-01",
+          "hospital": "BE",
+          "count": 5
+        },
+        {
+          "week": "2026-06-08",
+          "hospital": "BE",
+          "count": 2
+        },
+        {
+          "week": "2026-06-08",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-06-15",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "hospital": "BO",
+          "count": 1
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-01",
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "month": "2026-01",
+          "hospital": "GH",
+          "count": 7
+        },
+        {
+          "month": "2026-01",
+          "hospital": "HG",
+          "count": 6
+        },
+        {
+          "month": "2026-02",
+          "hospital": "BE",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "month": "2026-03",
+          "hospital": "BE",
+          "count": 3
+        },
+        {
+          "month": "2026-03",
+          "hospital": "GH",
+          "count": 1
+        },
+        {
+          "month": "2026-04",
+          "hospital": "BE",
+          "count": 27
+        },
+        {
+          "month": "2026-04",
+          "hospital": "GH",
+          "count": 5
+        },
+        {
+          "month": "2026-04",
+          "hospital": "HG",
+          "count": 4
+        },
+        {
+          "month": "2026-05",
+          "hospital": "BE",
+          "count": 14
+        },
+        {
+          "month": "2026-05",
+          "hospital": "GH",
+          "count": 2
+        },
+        {
+          "month": "2026-05",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "month": "2026-06",
+          "hospital": "BE",
+          "count": 8
+        },
+        {
+          "month": "2026-06",
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "month": "2026-06",
+          "hospital": "GH",
+          "count": 2
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-01",
+          "count": 14
+        },
+        {
+          "month": "2026-02",
+          "count": 6
+        },
+        {
+          "month": "2026-03",
+          "count": 4
+        },
+        {
+          "month": "2026-04",
+          "count": 36
+        },
+        {
+          "month": "2026-05",
+          "count": 18
+        },
+        {
+          "month": "2026-06",
+          "count": 11
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "BE",
+          "count": 53
+        },
+        {
+          "hospital": "BO",
+          "count": 1
+        },
+        {
+          "hospital": "BU",
+          "count": 1
+        },
+        {
+          "hospital": "GH",
+          "count": 18
+        },
+        {
+          "hospital": "HG",
+          "count": 16
+        }
+      ],
+      "by_region": [
+        {
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "region": "Maroodi Jeex",
+          "count": 34
+        },
+        {
+          "region": "Sahil",
+          "count": 53
+        },
+        {
+          "region": "Togdheer",
+          "count": 1
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2026-01-05",
+          "region": "Maroodi Jeex",
+          "count": 8
+        },
+        {
+          "week": "2026-01-05",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "week": "2026-01-12",
+          "region": "Maroodi Jeex",
+          "count": 2
+        },
+        {
+          "week": "2026-01-19",
+          "region": "Maroodi Jeex",
+          "count": 2
+        },
+        {
+          "week": "2026-01-26",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-02-02",
+          "region": "Maroodi Jeex",
+          "count": 3
+        },
+        {
+          "week": "2026-02-09",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-02-16",
+          "region": "Sahil",
+          "count": 1
+        },
+        {
+          "week": "2026-02-23",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-03-23",
+          "region": "Sahil",
+          "count": 2
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Maroodi Jeex",
+          "count": 3
+        },
+        {
+          "week": "2026-03-30",
+          "region": "Sahil",
+          "count": 5
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-04-06",
+          "region": "Sahil",
+          "count": 7
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-04-13",
+          "region": "Sahil",
+          "count": 6
+        },
+        {
+          "week": "2026-04-20",
+          "region": "Sahil",
+          "count": 7
+        },
+        {
+          "week": "2026-04-27",
+          "region": "Maroodi Jeex",
+          "count": 5
+        },
+        {
+          "week": "2026-04-27",
+          "region": "Sahil",
+          "count": 5
+        },
+        {
+          "week": "2026-05-04",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-05-04",
+          "region": "Sahil",
+          "count": 3
+        },
+        {
+          "week": "2026-05-18",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-05-18",
+          "region": "Sahil",
+          "count": 3
+        },
+        {
+          "week": "2026-05-25",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-05-25",
+          "region": "Sahil",
+          "count": 6
+        },
+        {
+          "week": "2026-06-01",
+          "region": "Sahil",
+          "count": 5
+        },
+        {
+          "week": "2026-06-08",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-06-08",
+          "region": "Sahil",
+          "count": 2
+        },
+        {
+          "week": "2026-06-15",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "region": "Sahil",
+          "count": 1
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-01",
+          "region": "Maroodi Jeex",
+          "count": 13
+        },
+        {
+          "month": "2026-01",
+          "region": "Togdheer",
+          "count": 1
+        },
+        {
+          "month": "2026-02",
+          "region": "Maroodi Jeex",
+          "count": 5
+        },
+        {
+          "month": "2026-02",
+          "region": "Sahil",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "month": "2026-03",
+          "region": "Sahil",
+          "count": 3
+        },
+        {
+          "month": "2026-04",
+          "region": "Maroodi Jeex",
+          "count": 9
+        },
+        {
+          "month": "2026-04",
+          "region": "Sahil",
+          "count": 27
+        },
+        {
+          "month": "2026-05",
+          "region": "Maroodi Jeex",
+          "count": 4
+        },
+        {
+          "month": "2026-05",
+          "region": "Sahil",
+          "count": 14
+        },
+        {
+          "month": "2026-06",
+          "region": "Awdal",
+          "count": 1
+        },
+        {
+          "month": "2026-06",
+          "region": "Maroodi Jeex",
+          "count": 2
+        },
+        {
+          "month": "2026-06",
+          "region": "Sahil",
+          "count": 8
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 52
+        },
+        {
+          "gender": "M",
+          "count": 37
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "5-14",
+          "count": 5
+        },
+        {
+          "age_group": "15-24",
+          "count": 30
+        },
+        {
+          "age_group": "25-44",
+          "count": 40
+        },
+        {
+          "age_group": "45-64",
+          "count": 10
+        },
+        {
+          "age_group": "65+",
+          "count": 4
+        }
+      ]
+    },
+    "Chikungunya": {
+      "total": 4,
+      "weekly_by_hospital": [
+        {
+          "week": "2026-06-01",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-06-15",
+          "hospital": "MC",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "hospital": "HG",
+          "count": 2
+        }
+      ],
+      "monthly_by_hospital": [
+        {
+          "month": "2026-06",
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "month": "2026-06",
+          "hospital": "MC",
+          "count": 2
+        }
+      ],
+      "monthly": [
+        {
+          "month": "2026-06",
+          "count": 4
+        }
+      ],
+      "by_hospital": [
+        {
+          "hospital": "HG",
+          "count": 2
+        },
+        {
+          "hospital": "MC",
+          "count": 2
+        }
+      ],
+      "by_region": [
+        {
+          "region": "Maroodi Jeex",
+          "count": 4
+        }
+      ],
+      "weekly_by_region": [
+        {
+          "week": "2026-06-01",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-06-15",
+          "region": "Maroodi Jeex",
+          "count": 1
+        },
+        {
+          "week": "2026-06-22",
+          "region": "Maroodi Jeex",
+          "count": 2
+        }
+      ],
+      "monthly_by_region": [
+        {
+          "month": "2026-06",
+          "region": "Maroodi Jeex",
+          "count": 4
+        }
+      ],
+      "by_gender": [
+        {
+          "gender": "F",
+          "count": 3
+        },
+        {
+          "gender": "M",
+          "count": 1
+        }
+      ],
+      "by_age": [
+        {
+          "age_group": "0-4",
+          "count": 1
+        },
+        {
+          "age_group": "5-14",
+          "count": 1
+        },
+        {
+          "age_group": "25-44",
+          "count": 2
         }
       ]
     },

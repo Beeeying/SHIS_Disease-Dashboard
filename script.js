@@ -1,14 +1,16 @@
 const DISEASE_COLORS = {
   Measles:'#378ADD', Dengue:'#D85A30', Malaria:'#1D9E75',
-  Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD'
+  Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD',
+  Typhoid:'#9B5DE5', Chikungunya:'#F15BB5'
 };
 const DISEASE_BG = {
   Measles:'#F9F1F0', Dengue:'#F4E8DB', Malaria:'#F4F0E1',
-  Cholera:'#E9F1EE', AWD:'#EAF5FF', TB:'#EEE9F2'
+  Cholera:'#E9F1EE', AWD:'#EAF5FF', TB:'#EEE9F2',
+  Typhoid:'#F2ECFA', Chikungunya:'#FCEAF4'
 };
 const HOSP_COLORS = {
   BU:'#378ADD',HG:'#D85A30',EG:'#1D9E75',GH:'#D4537E',
-  MC:'#BA7517',BO:'#7F77DD',BE:'#639922',BA:'#888780',SL:'#533AB7'
+  MC:'#BA7517',BO:'#7F77DD',BE:'#639922',BA:'#888780',SL:'#533AB7',DR:'#2F9C95'
 };
 
 let currentDisease = 'Measles', selectedHospital = null, charts = {};

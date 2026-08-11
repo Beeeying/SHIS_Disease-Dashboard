@@ -41,6 +41,14 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     gap: 16px;
 }
 
+.disease-summary-row{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap: 24px;
+    width: 100%;
+}
+
 .brand-text{
     display:flex;
     flex-direction:column;
@@ -51,16 +59,21 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     font-size: 32px;
     letter-spacing: -0.03em;
     margin: 0;
+    white-space: nowrap;
 }
 
 .disease-row{
     display:flex;
-    gap: 10px;
+    flex-direction:column;
+    gap: 4px;
+    align-items:flex-start;
+    overflow: visible;
+}
+.disease-line{
+    display:flex;
     flex-wrap:nowrap;
+    gap: 6px;
     align-items:center;
-    overflow-x:auto;
-    overflow-y:hidden;
-    -webkit-overflow-scrolling: touch;
 }
 
 .header-right{
@@ -75,9 +88,11 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     display:flex;
     gap: 10px;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: stretch;
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .banner-card{
@@ -85,8 +100,9 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     border: none;
     border-radius: 0;
     padding: 0;
-    min-width: 0;
     flex: 1 1 0;
+    min-width: 100px;
+    max-width: 100px;
     box-shadow: none;
     text-align: center;
 }
@@ -130,7 +146,6 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
 .view-btn.active { background: #000; color: #fff; }
 .view-btn:not(.active) { background: rgba(255,255,255,.9); }
 .d-btn { display: inline-flex; align-items: center; justify-content:center; gap: 8px; padding: 10px 18px; font-size: 12px; font-weight: 700; border-radius: 999px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; background: #fff; color: #1a1a1a; transition: all .2s; box-shadow: 0 6px 18px rgba(0,0,0,.08); }
-.d-btn { flex-shrink: 0; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
 .chart-header .chart-title { margin: 0; }
 .chart-header .pills { margin: 0; }
@@ -156,11 +171,9 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
 .chart-box.hidden { display: none }
 #ageChartBox { display: flex; flex-direction: column; min-height: 320px }
 .age-chart-host { flex: 1 1 auto; min-height: 0 }
-.chart-scroll-shell { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; cursor: grab; }
+.chart-scroll-shell { overflow-x: auto; overflow-y: hidden; padding-bottom: 0; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; cursor: grab; scrollbar-width: none; }
 .chart-scroll-shell.is-dragging { cursor: grabbing; }
-.chart-scroll-shell::-webkit-scrollbar { height: 10px; }
-.chart-scroll-shell::-webkit-scrollbar-track { background: rgba(0,0,0,.04); border-radius: 999px; }
-.chart-scroll-shell::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 999px; }
+.chart-scroll-shell::-webkit-scrollbar { display: none; }
 .chart-scroll-track { min-width: 100%; }
 .chart-scroll-track canvas { display: block; }
 .chart-title { font-size: 11px; font-weight: 700; color: #5f5f5f; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .6px }

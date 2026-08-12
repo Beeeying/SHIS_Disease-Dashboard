@@ -403,16 +403,23 @@ function getDiseaseTrend(disease) {
 function buildDiseaseButtons() {
   const row = document.getElementById('diseaseRow');
   row.innerHTML = '';
-  Object.keys(RAW).forEach(d => {
-    const b = document.createElement('button');
-    b.className = 'd-btn' + (d === currentDisease ? ' active' : '');
-    b.dataset.disease = d;
-    const trend = getDiseaseTrend(d);
-    b.dataset.trend = trend;
-    const icon = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '▬';
-    b.innerHTML = `${d} <span class="trend-icon">${icon}</span>`;
-    b.onclick = () => setDisease(d);
-    row.appendChild(b);
+  const diseases = Object.keys(RAW);
+  const half = Math.ceil(diseases.length / 2);
+  [diseases.slice(0, half), diseases.slice(half)].forEach(group => {
+    const line = document.createElement('div');
+    line.className = 'disease-line';
+    group.forEach(d => {
+      const b = document.createElement('button');
+      b.className = 'd-btn' + (d === currentDisease ? ' active' : '');
+      b.dataset.disease = d;
+      const trend = getDiseaseTrend(d);
+      b.dataset.trend = trend;
+      const icon = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '▬';
+      b.innerHTML = `${d} <span class="trend-icon">${icon}</span>`;
+      b.onclick = () => setDisease(d);
+      line.appendChild(b);
+    });
+    row.appendChild(line);
   });
 }
 
@@ -533,8 +540,7 @@ function renderWeekly() {
 
   const totalWeeks = weeks.length;
   const viewportWidth = Math.max(scrollShell?.clientWidth || 0, chartBox.clientWidth || 0);
-  const slotWidth = viewportWidth ? viewportWidth / WEEKLY_VIEWPORT_WEEKS : 56;
-  const chartWidth = Math.max(viewportWidth, Math.ceil(totalWeeks * slotWidth));
+  const chartWidth = viewportWidth || 600;
   if (scrollTrack) {
     scrollTrack.style.width = `${chartWidth}px`;
     scrollTrack.style.minWidth = `${chartWidth}px`;

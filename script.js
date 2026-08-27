@@ -498,6 +498,7 @@ function renderStats() {
   const topAgeGroup = topAge ? topAge.age_group : '—';
   const topAgeCount = topAge ? topAge.count : 0;
   document.getElementById('bannerSummary').innerHTML = `
+    <div class="banner-card"><div class="card-label">New Admission</div><div class="card-value">852</div><div class="card-sub">Latest Week</div></div>
     <div class="banner-card"><div class="card-label">Total Cases</div><div class="card-value">${total.toLocaleString()}</div><div class="card-sub">All Hospitals</div></div>
     <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod ? 'Week ' + peakPeriod : '—'}</div></div>
     <div class="banner-card age-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAgeGroup}<span class="age-suffix">Y</span></div><div class="card-sub">${topAgeCount ? topAgeCount.toLocaleString() + ' cases' : '—'}</div></div>`;

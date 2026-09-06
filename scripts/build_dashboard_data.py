@@ -223,6 +223,10 @@ def month_label(date_series: pd.Series) -> pd.Series:
     return date_series.dt.strftime("%Y-%m")
 
 
+def date_label(date_series: pd.Series) -> pd.Series:
+    return date_series.dt.strftime("%Y-%m-%d")
+
+
 def group_records(df: pd.DataFrame, group_cols: list[str], output_names: list[str]) -> list[dict[str, Any]]:
     if df.empty:
         return []
@@ -257,6 +261,7 @@ def sort_age_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
     subset = df.copy()
     subset["age_group"] = subset["age"].apply(age_group)
+    subset["day"] = date_label(subset["date"])
     subset["week"] = week_start_monday(subset["date"])
     subset["month"] = month_label(subset["date"])
     if "region" not in subset.columns:
@@ -268,6 +273,9 @@ def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
 
     return {
         "total": int(len(subset)),
+        "daily": group_records(subset, ["day"], ["date"]),
+        "daily_by_hospital": group_records(subset, ["day", "hospital"], ["date", "hospital"]),
+        "daily_by_region": group_records(subset, ["day", "region"], ["date", "region"]),
         "weekly_by_hospital": group_records(subset, ["week", "hospital"], ["week", "hospital"]),
         "monthly_by_hospital": group_records(subset, ["month", "hospital"], ["month", "hospital"]),
         "monthly": group_records(subset, ["month"], ["month"]),
@@ -284,6 +292,9 @@ def validate_disease_summary(summary: dict[str, Any]) -> dict[str, Any]:
     total = summary["total"]
     checks = {}
     for key in [
+        "daily",
+        "daily_by_hospital",
+        "daily_by_region",
         "weekly_by_hospital",
         "monthly_by_hospital",
         "monthly",

@@ -565,21 +565,22 @@ function renderWeekly() {
   }
 
   const isDaily = activeView === 'daily';
-  let periods = isDaily ? GLOBAL_DAYS : GLOBAL_WEEKS;
-  let data;
-  if (isDaily) {
-    const dailyCounts = {};
-    (RAW[currentDisease].daily || []).forEach(r => {
-      dailyCounts[r.date] = (dailyCounts[r.date] || 0) + Number(r.count || 0);
-    });
-    data = periods.map(day => dailyCounts[day] || 0);
-  } else {
-    let rows = RAW[currentDisease].weekly_by_hospital;
-    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
-    const totalsByWeek = {};
-    rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
-    data = periods.map(week => totalsByWeek[week] || 0);
+  const periods = isDaily ? GLOBAL_DAYS : GLOBAL_WEEKS;
+  const periodKey = isDaily ? 'date' : 'week';
+  let rows = isDaily
+    ? (RAW[currentDisease].daily || [])
+    : (RAW[currentDisease].weekly_by_hospital || []);
+  if (!isDaily && selectedHospital) {
+    rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
   }
+
+  const countsByPeriod = {};
+  rows.forEach(r => {
+    const period = r[periodKey];
+    if (!period) return;
+    countsByPeriod[period] = (countsByPeriod[period] || 0) + Number(r.count || 0);
+  });
+  const data = periods.map(period => countsByPeriod[period] || 0);
 
   if (!periods.length || data.every(v => v === 0)) {
     chartBox.innerHTML = '<div class="zero-msg">No data</div>';
@@ -1134,6 +1135,6 @@ function setupViewSwitch() {
 if (!window.__weeklyChartResizeBound) {
   window.__weeklyChartResizeBound = true;
   window.addEventListener('resize', () => {
-    if (document.getElementById('weeklyChartBox')) renderAll();
+    if (RAW[currentDisease] && document.getElementById('weeklyChartBox')) renderAll();
   });
 }

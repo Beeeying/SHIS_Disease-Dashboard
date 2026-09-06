@@ -15,6 +15,7 @@ const HOSP_COLORS = {
 
 let currentDisease = 'Measles', selectedHospital = null, charts = {};
 let RAW = {}; 
+let GLOBAL_DAYS = [];
 let GLOBAL_WEEKS = [];
 let GLOBAL_MONTHS = [];
 let activeView = 'weekly';
@@ -107,6 +108,8 @@ const barValueLabelsPlugin = {
   afterDatasetsDraw(chart) {
     const { ctx } = chart;
     if (!ctx) return;
+    const settings = chart.options?.plugins?.barValueLabels || {};
+    if (settings.mode === 'none') return;
     const meta = chart.getDatasetMeta(0);
     if (!meta?.data?.length) return;
 
@@ -118,6 +121,7 @@ const barValueLabelsPlugin = {
 
     meta.data.forEach((bar, index) => {
       if (!bar || typeof bar.x !== 'number' || typeof bar.y !== 'number') return;
+      if (settings.mode === 'peakOnly' && index !== settings.onlyIndex) return;
       const value = chart.data.datasets[0].data[index];
       if (value === undefined || value === null || value <= 0) return;
 
@@ -236,6 +240,20 @@ function adaptDashboardJson(json) {
   Object.entries(diseases).forEach(([disease, entry]) => {
     adapted[disease] = {
       total: Number(entry.total || 0),
+      daily: (entry.daily || []).map(r => ({
+        date: r.date,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      daily_by_hospital: (entry.daily_by_hospital || []).map(r => ({
+        date: r.date,
+        "Hospital Name": r.hospital,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
+      daily_by_region: (entry.daily_by_region || []).map(r => ({
+        date: r.date,
+        region: r.region,
+        count: Number(r.count ?? r.cases ?? 0)
+      })),
       weekly_by_hospital: (entry.weekly_by_hospital || []).map(r => ({
         week: r.week,
         "Hospital Name": r.hospital,
@@ -283,10 +301,17 @@ function adaptDashboardJson(json) {
 }
 
 function rebuildGlobalPeriodsFromRaw(rawData) {
+  const days = new Set();
   const weeks = new Set();
   const months = new Set();
 
   Object.values(rawData || {}).forEach(d => {
+    (d.daily || []).forEach(r => {
+      if (r.date) days.add(r.date);
+    });
+    (d.daily_by_hospital || []).forEach(r => {
+      if (r.date) days.add(r.date);
+    });
     (d.weekly_by_hospital || []).forEach(r => {
       if (r.week) weeks.add(r.week);
     });
@@ -295,6 +320,7 @@ function rebuildGlobalPeriodsFromRaw(rawData) {
     });
   });
 
+  GLOBAL_DAYS = [...days].sort();
   GLOBAL_WEEKS = [...weeks].sort();
   GLOBAL_MONTHS = [...months].sort();
 }
@@ -353,6 +379,7 @@ Promise.all([
 
 function parseCSV(text) {
   const data = {};
+  const daySet = new Set();
   const weekSet = new Set();
   const monthSet = new Set();
   const lines = text.trim().split('\n');
@@ -368,10 +395,14 @@ function parseCSV(text) {
     }
 
     if (!data[disease]) {
-      data[disease] = { total: 0, weekly_by_hospital: [], monthly: [], by_hospital: [], by_gender: [], by_age: [] };
+      data[disease] = { total: 0, daily: [], daily_by_hospital: [], weekly_by_hospital: [], monthly: [], by_hospital: [], by_gender: [], by_age: [] };
     }
 
     if (type === 'Total') data[disease].total = count;
+    else if (type === 'Daily') {
+      data[disease].daily.push({ date: key1, count: count });
+      daySet.add(key1);
+    }
     else if (type === 'Weekly') {
       data[disease].weekly_by_hospital.push({ week: key1, "Hospital Name": key2, count: count });
       weekSet.add(key1);
@@ -385,6 +416,7 @@ function parseCSV(text) {
     else if (type === 'Age') data[disease].by_age.push({ age_group: key1, count: count });
   }
 
+  GLOBAL_DAYS = [...daySet].sort();
   GLOBAL_WEEKS = [...weekSet].sort();
   GLOBAL_MONTHS = [...monthSet].sort();
   return data;
@@ -445,9 +477,11 @@ function getLatestWeek() {
 
 function getRegionalCaseMap(period, mode = activeView) {
   const d = RAW[currentDisease] || {};
-  const rows = mode === 'monthly'
-    ? (d.monthly_by_region || []).filter(r => r.month === period)
-    : (d.weekly_by_region || []).filter(r => r.week === period);
+  const rows = mode === 'daily'
+    ? (d.daily_by_region || []).filter(r => r.date === period)
+    : mode === 'monthly'
+      ? (d.monthly_by_region || []).filter(r => r.month === period)
+      : (d.weekly_by_region || []).filter(r => r.week === period);
 
   const cases = {};
   rows.forEach(r => {
@@ -530,20 +564,29 @@ function renderWeekly() {
     chartCanvas = document.getElementById('chartWeekly');
   }
 
-  let rows = RAW[currentDisease].weekly_by_hospital;
-  if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+  const isDaily = activeView === 'daily';
+  const periods = isDaily ? GLOBAL_DAYS : GLOBAL_WEEKS;
+  const periodKey = isDaily ? 'date' : 'week';
+  let rows = isDaily
+    ? (RAW[currentDisease].daily || [])
+    : (RAW[currentDisease].weekly_by_hospital || []);
+  if (!isDaily && selectedHospital) {
+    rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+  }
 
-  const weeks = GLOBAL_WEEKS;
-  const totalsByWeek = {};
-  rows.forEach(r => { totalsByWeek[r.week] = (totalsByWeek[r.week] || 0) + r.count; });
-  const data = weeks.map(w => totalsByWeek[w] || 0);
+  const countsByPeriod = {};
+  rows.forEach(r => {
+    const period = r[periodKey];
+    if (!period) return;
+    countsByPeriod[period] = (countsByPeriod[period] || 0) + Number(r.count || 0);
+  });
+  const data = periods.map(period => countsByPeriod[period] || 0);
 
-  if (!weeks.length || data.every(v => v === 0)) {
+  if (!periods.length || data.every(v => v === 0)) {
     chartBox.innerHTML = '<div class="zero-msg">No data</div>';
     return;
   }
 
-  const totalWeeks = weeks.length;
   const viewportWidth = Math.max(scrollShell?.clientWidth || 0, chartBox.clientWidth || 0);
   const chartWidth = viewportWidth || 600;
   if (scrollTrack) {
@@ -577,19 +620,34 @@ function renderWeekly() {
     const date = new Date(Date.UTC(year, month - 1, day));
     const shortMonth = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
     const labelDay = String(day).padStart(2, '0');
-    const prev = index > 0 ? weeks[index - 1] : null;
+    const prev = index > 0 ? periods[index - 1] : null;
     const prevDate = prev ? prev.split('-').map(Number) : null;
     const isFirst = index === 0;
     const monthChanged = !prevDate || prevDate[1] !== month || prevDate[0] !== year;
     return isFirst || monthChanged ? `${shortMonth} ${labelDay}` : labelDay;
   };
+  const formatShortDate = (rawDate) => {
+    const [year, month, day] = rawDate.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const shortMonth = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    return `${shortMonth} ${String(day).padStart(2, '0')}`;
+  };
 
-  const boundaryLabels = weeks.map((week, index) => formatWeeklyTick(week, index));
+  const boundaryLabels = periods.map((period, index) => formatWeeklyTick(period, index));
+  const dailyBoundaryLabels = isDaily
+    ? periods.map((period, index) => {
+        const previous = index > 0 ? periods[index - 1] : null;
+        const isFirst = index === 0;
+        const isLast = index === periods.length - 1;
+        const monthChanged = !previous || previous.slice(0, 7) !== period.slice(0, 7);
+        return isFirst || monthChanged || isLast ? formatShortDate(period) : '';
+      })
+    : boundaryLabels;
 
   charts['weekly'] = new Chart(chartCanvas, {
     type: 'bar',
     data: {
-      labels: weeks,
+      labels: periods,
       datasets: [{
         label: 'Total cases',
         data,
@@ -609,13 +667,16 @@ function renderWeekly() {
       },
       plugins: {
         legend: { display: false },
+        barValueLabels: isDaily
+          ? { mode: 'none' }
+          : {},
         weeklyPeakHighlight: {
           peakIndex,
-          label: 'Peak Week'
+          label: isDaily ? 'Peak Day' : 'Peak Week'
         },
         weeklyIntervalGrid: {
           enabled: true,
-          labels: boundaryLabels
+          labels: dailyBoundaryLabels
         }
       },
       scales: {
@@ -627,9 +688,9 @@ function renderWeekly() {
             font: { size: 10 },
             align: 'center',
             autoSkip: false,
-            maxTicksLimit: weeks.length,
+            maxTicksLimit: periods.length,
             padding: 4,
-            callback: (value, index) => formatWeeklyTick(weeks[index], index)
+            callback: (value, index) => formatWeeklyTick(periods[index], index)
           },
           grid: {
             display: false,
@@ -656,6 +717,7 @@ function renderWeekly() {
 
 function renderHospital() {
   dc('hosp');
+  const isDaily = activeView === 'daily';
   const isMonthly = activeView === 'monthly';
   const chartHost = document.getElementById('chartHosp')?.parentElement;
   if (!chartHost) return;
@@ -670,7 +732,37 @@ function renderHospital() {
   let datasets = [];
   let totals = [];
 
-  if (isMonthly) {
+  if (isDaily) {
+    const days = [...GLOBAL_DAYS];
+    let rows = RAW[currentDisease].daily_by_hospital || [];
+    if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
+    const hospitals = [...new Set(rows.map(r => r['Hospital Name']))].sort();
+    if (!rows.length) {
+      chartHost.innerHTML = '<canvas id="chartHosp"></canvas><div class="zero-msg">No data</div>';
+      document.getElementById('legendWeekly').innerHTML = '';
+      return;
+    }
+    labels = days;
+    datasets = hospitals.map(h => {
+      const values = days.map(day => {
+        const r = rows.find(x => x.date === day && x['Hospital Name'] === h);
+        return r ? r.count : 0;
+      });
+      return {
+        label: h,
+        data: values,
+        borderColor: HOSP_COLORS[h] || '#888',
+        backgroundColor: hexToRgba(HOSP_COLORS[h] || '#888', 0.14),
+        tension: 0.3,
+        fill: false,
+        pointRadius: 2,
+        borderWidth: 2
+      };
+    });
+    document.getElementById('legendWeekly').innerHTML = hospitals.map(h =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${HOSP_COLORS[h]||'#888'}"></span>${h}</span>`).join('');
+    totals = days.map((day, index) => datasets.reduce((sum, ds) => sum + (ds.data[index] || 0), 0));
+  } else if (isMonthly) {
     const months = [...GLOBAL_MONTHS];
     let rows = RAW[currentDisease].monthly_by_hospital || [];
     if (selectedHospital) rows = rows.filter(r => r['Hospital Name'] === selectedHospital);
@@ -762,7 +854,7 @@ function renderHospital() {
               borderWidth: 0,
               drawTime: 'beforeDatasetsDraw',
               label: {
-                content: [isMonthly ? 'Peak Month' : 'Peak Week'],
+                content: [isDaily ? 'Peak Day' : isMonthly ? 'Peak Month' : 'Peak Week'],
                 enabled: true,
                 position: 'center',
                 yAdjust: -24,
@@ -805,8 +897,9 @@ function renderMonthly() {
     type:'bar',
     data:{ labels:months.map(m=>m), datasets:[{ data:months.map(m=>monthCounts[m] || 0), backgroundColor:accent, borderColor:accent, borderWidth:0, borderRadius:14, borderSkipped:false, barPercentage:0.92, categoryPercentage:0.96, maxBarThickness:110 }] },
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
-      scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } }
+      plugins:{legend:{display:false}, barValueLabels:{mode:'all'}, tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' cases'}}},
+      scales:{ x:{ticks:{font:{size:12},autoSkip:true,maxTicksLimit:12}, offset:true}, y:{beginAtZero:true,grace:'5%',ticks:{font:{size:10},precision:0,callback:value=>Number.isInteger(value) ? value : ''}} } },
+    plugins:[barValueLabelsPlugin]
   });
 }
 
@@ -849,11 +942,14 @@ function renderRegionalMap() {
     return;
   }
 
+  const isDaily = activeView === 'daily';
   const isMonthly = activeView === 'monthly';
   const diseaseData = RAW[currentDisease] || {};
-  const regionSeries = isMonthly ? (diseaseData.monthly_by_region || []) : (diseaseData.weekly_by_region || []);
-  const periodKey = isMonthly ? 'month' : 'week';
-  const fallbackPeriods = isMonthly ? GLOBAL_MONTHS : GLOBAL_WEEKS;
+  const regionSeries = isDaily
+    ? (diseaseData.daily_by_region || [])
+    : isMonthly ? (diseaseData.monthly_by_region || []) : (diseaseData.weekly_by_region || []);
+  const periodKey = isDaily ? 'date' : isMonthly ? 'month' : 'week';
+  const fallbackPeriods = isDaily ? GLOBAL_DAYS : isMonthly ? GLOBAL_MONTHS : GLOBAL_WEEKS;
   const latestPeriod = regionSeries.length
     ? [...regionSeries].map(item => item[periodKey]).filter(Boolean).sort().pop() || fallbackPeriods[fallbackPeriods.length - 1] || ''
     : fallbackPeriods[fallbackPeriods.length - 1] || '';
@@ -1007,7 +1103,8 @@ function renderRegionalMap() {
 
   const captionEl = document.getElementById('regionMapCaption');
   if (captionEl) {
-    captionEl.textContent = `${isMonthly ? 'Latest month' : 'Latest week'}: ${latestPeriod || '—'} · ${currentDisease}`;
+    const periodLabel = isDaily ? 'Latest day' : isMonthly ? 'Latest month' : 'Latest week';
+    captionEl.textContent = `${periodLabel}: ${latestPeriod || '—'} · ${currentDisease}`;
   }
 }
 
@@ -1026,9 +1123,8 @@ function setupViewSwitch() {
     btn.onclick = () => {
       activeView = btn.dataset.mode;
       buttons.forEach(b => b.classList.toggle('active', b === btn));
-      const weeklyOnlyIds = ['weeklyChartBox'];
       const alwaysVisibleIds = ['hospitalTrendBox', 'ageChartBox', 'regionChartBox'];
-      weeklyOnlyIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', activeView !== 'weekly'));
+      document.getElementById('weeklyChartBox')?.classList.toggle('hidden', activeView === 'monthly');
       alwaysVisibleIds.forEach(id => document.getElementById(id)?.classList.toggle('hidden', false));
       document.getElementById('monthlyChartBox')?.classList.toggle('hidden', activeView !== 'monthly');
       renderAll();
@@ -1039,6 +1135,6 @@ function setupViewSwitch() {
 if (!window.__weeklyChartResizeBound) {
   window.__weeklyChartResizeBound = true;
   window.addEventListener('resize', () => {
-    if (document.getElementById('weeklyChartBox')) renderAll();
+    if (RAW[currentDisease] && document.getElementById('weeklyChartBox')) renderAll();
   });
 }

@@ -258,7 +258,37 @@ def sort_age_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(records, key=lambda r: order.get(r.get("age_group"), 999))
 
 
-def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
+def make_daily_records(
+    subset: pd.DataFrame,
+    daily_date_spine: pd.DatetimeIndex,
+) -> list[dict[str, Any]]:
+    spine = pd.DataFrame({
+        "date": daily_date_spine.strftime("%Y-%m-%d")
+    })
+
+    if subset.empty:
+        spine["count"] = 0
+        return spine.to_dict(orient="records")
+
+    daily_counts = (
+        subset.assign(date_label=subset["date"].dt.strftime("%Y-%m-%d"))
+        .groupby("date_label", dropna=False)
+        .size()
+        .reset_index(name="count")
+        .rename(columns={"date_label": "date"})
+    )
+
+    merged = spine.merge(daily_counts, on="date", how="left")
+    merged["count"] = merged["count"].fillna(0).astype(int)
+
+    return merged.to_dict(orient="records")
+
+
+def disease_summary(
+    df: pd.DataFrame,
+    disease_name: str,
+    daily_date_spine: pd.DatetimeIndex,
+) -> dict[str, Any]:
     subset = df.copy()
     subset["age_group"] = subset["age"].apply(age_group)
     subset["day"] = date_label(subset["date"])
@@ -269,11 +299,12 @@ def disease_summary(df: pd.DataFrame, disease_name: str) -> dict[str, Any]:
     else:
         subset["region"] = subset["region"].fillna("Unknown")
 
+    daily = make_daily_records(subset, daily_date_spine)
     by_age = sort_age_records(group_records(subset, ["age_group"], ["age_group"]))
 
     return {
         "total": int(len(subset)),
-        "daily": group_records(subset, ["day"], ["date"]),
+        "daily": daily,
         "daily_by_hospital": group_records(subset, ["day", "hospital"], ["date", "hospital"]),
         "daily_by_region": group_records(subset, ["day", "region"], ["date", "region"]),
         "weekly_by_hospital": group_records(subset, ["week", "hospital"], ["week", "hospital"]),
@@ -345,13 +376,21 @@ def build_dashboard_data(
     text_blob = make_text_blob(df_valid)
     icd_blob = make_icd_blob(df_valid)
 
+    date_min = df_valid["date"].min() if not df_valid.empty else None
+    date_max = df_valid["date"].max() if not df_valid.empty else None
+    daily_date_spine = (
+        pd.date_range(date_min, date_max, freq="D")
+        if date_min is not None and date_max is not None
+        else pd.DatetimeIndex([])
+    )
+
     diseases: dict[str, Any] = {}
     validation: dict[str, Any] = {}
 
     for disease_name, rule in definitions["diseases"].items():
         mask = disease_mask(df_valid, icd_blob, text_blob, rule)
         subset = df_valid.loc[mask].copy()
-        diseases[disease_name] = disease_summary(subset, disease_name)
+        diseases[disease_name] = disease_summary(subset, disease_name, daily_date_spine)
         validation[disease_name] = validate_disease_summary(diseases[disease_name])
 
     age_numeric = pd.to_numeric(df["age"], errors="coerce")
@@ -363,8 +402,6 @@ def build_dashboard_data(
     )
 
     reporting_hospitals = len(hospitals)
-    date_min = df_valid["date"].min() if not df_valid.empty else None
-    date_max = df_valid["date"].max() if not df_valid.empty else None
     date_range_label = format_date_range_label(date_min, date_max)
     generated_at = datetime.now(timezone.utc).isoformat()
 

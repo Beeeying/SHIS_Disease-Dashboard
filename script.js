@@ -484,6 +484,10 @@ function updatePills() {
 function renderStats() {
   const d = RAW[currentDisease];
   let total = d.total, peak = '', peakVal = 0;
+  const latestWeek = GLOBAL_WEEKS[GLOBAL_WEEKS.length - 1];
+  const newAdmission = (d.weekly_by_hospital || [])
+    .filter(r => r.week === latestWeek)
+    .reduce((sum, r) => sum + Number(r.count || 0), 0);
   const wm = {};
   d.weekly_by_hospital.forEach(r => { wm[r.week] = (wm[r.week] || 0) + r.count; });
   Object.entries(wm).forEach(([w, c]) => { if (c > peakVal) { peakVal = c; peak = w; } });
@@ -498,7 +502,7 @@ function renderStats() {
   const topAgeGroup = topAge ? topAge.age_group : '—';
   const topAgeCount = topAge ? topAge.count : 0;
   document.getElementById('bannerSummary').innerHTML = `
-    <div class="banner-card"><div class="card-label">New Admission</div><div class="card-value">852</div><div class="card-sub">Latest Week</div></div>
+    <div class="banner-card"><div class="card-label">New Admission</div><div class="card-value">${newAdmission.toLocaleString()}</div><div class="card-sub">Latest Week</div></div>
     <div class="banner-card"><div class="card-label">Total Cases</div><div class="card-value">${total.toLocaleString()}</div><div class="card-sub">All Hospitals</div></div>
     <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod ? 'Week ' + peakPeriod : '—'}</div></div>
     <div class="banner-card age-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAgeGroup}<span class="age-suffix">Y</span></div><div class="card-sub">${topAgeCount ? topAgeCount.toLocaleString() + ' cases' : '—'}</div></div>`;

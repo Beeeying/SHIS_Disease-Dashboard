@@ -24,7 +24,9 @@ body { font-family: 'Intel One Mono', monospace, -apple-system, BlinkMacSystemFo
     align-items:center;
     justify-content:center;
     gap: clamp(12px, 4vw, 60px);
-    width:100%;
+    width:fit-content;
+    max-width:100%;
+    margin-inline:auto;
     min-height: 104px;
 }
 

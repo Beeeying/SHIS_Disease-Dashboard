@@ -515,6 +515,27 @@ function updatePills() {
   });
 }
 
+function formatWeekRange(rawDate) {
+  if (!rawDate) return '—';
+
+  const [year, month, day] = rawDate.split('-').map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(start.getTime())) return '—';
+
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 7);
+
+  const formatDayMonth = (date) => {
+    const monthShort = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const dayLabel = String(date.getUTCDate()).padStart(2, '0');
+    return `${dayLabel} ${monthShort}`;
+  };
+
+  const startLabel = formatDayMonth(start);
+  const endLabel = formatDayMonth(end);
+  return `${startLabel} - ${endLabel}`;
+}
+
 function renderStats() {
   const d = RAW[currentDisease];
   let total = d.total, peak = '', peakVal = 0;
@@ -532,13 +553,13 @@ function renderStats() {
   const trend = months.length >= 2 ? (months[months.length-1].count > months[months.length-2].count ? 'Rising' : 'Falling') : 'N/A';
   const tColor = trend === 'Rising' ? '#E24B4A' : '#1D9E75';
   const accentColor = DISEASE_COLORS[currentDisease];
-  const peakPeriod = peak ? peak.slice(5).replace('-', ' - ') : '—';
+  const peakPeriod = peak ? formatWeekRange(peak) : '—';
   const topAgeGroup = topAge ? topAge.age_group : '—';
   const topAgeCount = topAge ? topAge.count : 0;
   document.getElementById('bannerSummary').innerHTML = `
     <div class="banner-card"><div class="card-label">New Admission</div><div class="card-value">${newAdmission.toLocaleString()}</div><div class="card-sub">Latest Week</div></div>
     <div class="banner-card"><div class="card-label">Total Cases</div><div class="card-value">${total.toLocaleString()}</div><div class="card-sub">All Hospitals</div></div>
-    <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod ? 'Week ' + peakPeriod : '—'}</div></div>
+    <div class="banner-card"><div class="card-label">Peak Week</div><div class="card-value">${peakVal.toLocaleString()}</div><div class="card-sub">${peakPeriod}</div></div>
     <div class="banner-card age-card"><div class="card-label">Top Age Group</div><div class="card-value">${topAgeGroup}<span class="age-suffix">Y</span></div><div class="card-sub">${topAgeCount ? topAgeCount.toLocaleString() + ' cases' : '—'}</div></div>`;
 }
 

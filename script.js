@@ -1,12 +1,12 @@
 const DISEASE_COLORS = {
   Measles:'#378ADD', Dengue:'#D85A30', Malaria:'#1D9E75',
   Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD',
-  Typhoid:'#9B5DE5', Chikungunya:'#F15BB5'
+  Typhoid:'#9B5DE5', Chikungunya:'#F15BB5', Ebola:'#E45756'
 };
 const DISEASE_BG = {
   Measles:'#F9F1F0', Dengue:'#F4E8DB', Malaria:'#F4F0E1',
   Cholera:'#E9F1EE', AWD:'#EAF5FF', TB:'#EEE9F2',
-  Typhoid:'#F2ECFA', Chikungunya:'#FCEAF4'
+  Typhoid:'#F2ECFA', Chikungunya:'#FCEAF4', Ebola:'#FBE9E7'
 };
 const HOSP_COLORS = {
   BU:'#378ADD',HG:'#D85A30',EG:'#1D9E75',GH:'#D4537E',
@@ -342,6 +342,23 @@ Promise.all([
 ])
   .then(([dashboardJson, svgText]) => {
     RAW = adaptDashboardJson(dashboardJson);
+    if (!RAW.Ebola) {
+      RAW.Ebola = {
+        total: 0,
+        daily: [],
+        daily_by_hospital: [],
+        daily_by_region: [],
+        weekly_by_hospital: [],
+        monthly_by_hospital: [],
+        monthly: [],
+        by_hospital: [],
+        by_region: [],
+        weekly_by_region: [],
+        monthly_by_region: [],
+        by_gender: [],
+        by_age: []
+      };
+    }
     rebuildGlobalPeriodsFromRaw(RAW);
     renderDashboardMetadata(dashboardJson.metadata || {});
 

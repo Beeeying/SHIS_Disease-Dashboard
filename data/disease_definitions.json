@@ -81,6 +81,14 @@
       ],
       "keywords_any": [],
       "notes": "Strict active tuberculosis definition using ICD-10 A15-A19. Previous prototype numbers may have included sequelae or TB-associated codes; review if you need to match legacy totals."
+    },
+    "Ebola": {
+      "match_mode": "icd_only",
+      "icd10_prefixes": [
+        "A98.4"
+      ],
+      "keywords_any": [],
+      "notes": "ICD-10 A98.4 Ebola virus disease."
     }
   }
 }

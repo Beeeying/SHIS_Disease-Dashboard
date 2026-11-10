@@ -1,12 +1,12 @@
 const DISEASE_COLORS = {
   Measles:'#378ADD', Dengue:'#D85A30', Malaria:'#1D9E75',
   Cholera:'#D4537E', AWD:'#BA7517', TB:'#7F77DD',
-  Typhoid:'#9B5DE5', Chikungunya:'#F15BB5'
+  Typhoid:'#9B5DE5', Chikungunya:'#F15BB5', Ebola:'#2D8A5E'
 };
 const DISEASE_BG = {
   Measles:'#F9F1F0', Dengue:'#F4E8DB', Malaria:'#F4F0E1',
   Cholera:'#E9F1EE', AWD:'#EAF5FF', TB:'#EEE9F2',
-  Typhoid:'#F2ECFA', Chikungunya:'#FCEAF4'
+  Typhoid:'#F2ECFA', Chikungunya:'#FCEAF4', Ebola:'#EAF7F1'
 };
 const HOSP_COLORS = {
   BU:'#378ADD',HG:'#D85A30',EG:'#1D9E75',GH:'#D4537E',
